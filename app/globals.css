@@ -231,6 +231,90 @@
   }
 }
 
+/* ── Página pública de adopción ─────────────────────────────── */
+
+/* Fotos del collage flotando, cada una a su ritmo */
+.float-card {
+  animation: float-card 6s ease-in-out infinite;
+}
+
+@keyframes float-card {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -12px; }
+}
+
+/* Huellitas que van apareciendo como pasos */
+.paw-step {
+  opacity: 0;
+  animation: paw-step 7s ease-in-out infinite;
+}
+
+@keyframes paw-step {
+  0% { opacity: 0; transform: scale(0.6) rotate(var(--r, 0deg)); }
+  6% { opacity: var(--o, 0.18); transform: scale(1) rotate(var(--r, 0deg)); }
+  45% { opacity: var(--o, 0.18); }
+  60%, 100% { opacity: 0; transform: scale(1) rotate(var(--r, 0deg)); }
+}
+
+/* Globito «¡Adóptame!» */
+.bubble-pop {
+  animation: bubble-pop 3.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes bubble-pop {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.4); }
+  12% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  85% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -6px) scale(0.9); }
+}
+
+/* Corazones que suben desde una foto */
+.heart-rise {
+  animation: heart-rise 2.4s ease-out both;
+}
+
+@keyframes heart-rise {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx, 0), -110px) scale(1.15) rotate(var(--rot, 0deg)); }
+}
+
+/* Tira de fotos en bucle (portada en móvil) */
+.marquee {
+  animation: marquee 28s linear infinite;
+}
+
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* Palabra del titular que va cambiando */
+.word-in {
+  animation: word-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes word-in {
+  from { opacity: 0; transform: translateY(0.45em); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+/* Aparición al hacer scroll (components/public/reveal.tsx) */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--delay, 0ms);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
+}
+
 /* Resalta una fila recién creada o editada */
 .row-flash {
   animation: row-flash 2.2s ease-out both;

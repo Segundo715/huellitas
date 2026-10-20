@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Heart, Mars, PawPrint, Venus } from 'lucide-react';
+import { celebrate } from '@/lib/celebrate';
 import { ageGroup, ageGroupLabel, ageLabel, type PublicAnimal } from '@/lib/data/public-adoption';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,11 @@ export function FavoriteButton({ active, onToggle, name, className }: { active: 
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
+        // Al guardar un favorito, una mini explosión de corazones sale del botón.
+        if (!active) {
+          const rect = event.currentTarget.getBoundingClientRect();
+          celebrate({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }, 10);
+        }
         onToggle();
       }}
       aria-pressed={active}

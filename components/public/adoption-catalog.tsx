@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { ArrowDown, Baby, CalendarHeart, Cat, Dog, ClipboardCheck, FileText, Heart, Home, IdCard, MessageCircleQuestion, PawPrint, Search, ShieldCheck, Sparkles, Stethoscope, X } from 'lucide-react';
 import { AnimatedNumber } from '@/components/animated-number';
 import { AnimalCard } from '@/components/public/animal-card';
+import { HeroCollage, PawTrail, PhotoMarquee, RotatingWord } from '@/components/public/hero-fx';
+import { Reveal } from '@/components/public/reveal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -111,14 +113,20 @@ export function AdoptionCatalog() {
           <div className="animate-aurora absolute -right-24 top-10 h-96 w-96 rounded-full bg-orange-300/30 blur-3xl [animation-delay:-8s] dark:bg-orange-500/10" />
           <div className="bg-dots absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black_20%,transparent_70%)]" />
         </div>
+        <PawTrail />
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[1.1fr_1fr]">
-          <div className="animate-page">
+          <div className="animate-page min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full border bg-card/70 px-3 py-1 text-xs font-semibold text-primary backdrop-blur">
               <Sparkles className="h-3.5 w-3.5" /> Adopción responsable
             </p>
-            <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-              Tu nuevo mejor amigo <span className="text-gradient">te está esperando.</span>
+            <h1 className="mt-4 min-h-[4.3em] font-display sm:min-h-[3.3em] text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+              Tu nuevo
+              <br />
+              <RotatingWord />
+              <br />
+              te está esperando.
             </h1>
+            <div className="mt-5"><PhotoMarquee animals={animals.filter((a) => a.photo_webp && a.status === 'Disponible')} /></div>
             <p className="mt-4 max-w-xl text-lg text-muted-foreground">
               Perros y gatos rescatados, vacunados y llenos de amor buscan una familia. Conócelos, elige con calma y nosotros te acompañamos en todo el proceso.
             </p>
@@ -150,23 +158,7 @@ export function AdoptionCatalog() {
             </dl>
           </div>
 
-          <div aria-hidden="true" className="relative hidden h-[26rem] lg:block">
-            {collage.map((animal, index) => (
-              <Link
-                key={animal.id}
-                href={`/adopta/${animal.id}`}
-                tabIndex={-1}
-                className={cn(
-                  'absolute overflow-hidden rounded-3xl border-4 border-card shadow-lift transition-transform duration-500 hover:z-10 hover:scale-105',
-                  ['left-0 top-6 h-56 w-56 -rotate-6', 'right-6 top-0 h-44 w-44 rotate-6', 'bottom-0 left-16 h-48 w-48 rotate-3', 'bottom-0 right-0 h-52 w-52 -rotate-3'][index],
-                )}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={animal.photo_webp!} alt="" className="h-full w-full object-cover" />
-                <span className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-bold text-[#0f172a]">{animal.name}</span>
-              </Link>
-            ))}
-          </div>
+          <HeroCollage animals={collage} />
         </div>
         <a href="#animales" className="mx-auto mb-4 hidden w-fit animate-bounce text-muted-foreground lg:block" aria-label="Bajar a los animales">
           <ArrowDown className="h-5 w-5" />
@@ -258,18 +250,18 @@ export function AdoptionCatalog() {
           <p className="mx-auto mt-2 max-w-xl text-center text-muted-foreground">Queremos que cada adopción sea para siempre, por eso te acompañamos paso a paso.</p>
           <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map(({ icon: Icon, title, text }, index) => (
-              <li key={title} className="relative rounded-3xl border bg-card p-6 shadow-card">
+              <Reveal as="li" key={title} delay={index * 120} className="group relative rounded-3xl border bg-card p-6 shadow-card transition-shadow hover:shadow-lift">
                 <span className="absolute right-5 top-4 font-display text-5xl font-extrabold text-muted/80 dark:text-white/5">{index + 1}</span>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-indigo-500 text-white shadow-lg shadow-sky-500/30">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-indigo-500 text-white shadow-lg shadow-sky-500/30 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
                   <Icon className="h-6 w-6" />
                 </div>
                 <h3 className="mt-4 font-display text-lg font-bold">{title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{text}</p>
-              </li>
+              </Reveal>
             ))}
           </ol>
 
-          <div className="mt-12 grid gap-6 rounded-3xl border bg-card p-6 shadow-card sm:p-8 lg:grid-cols-[1fr_1.4fr]">
+          <Reveal className="mt-12 grid gap-6 rounded-3xl border bg-card p-6 shadow-card sm:p-8 lg:grid-cols-[1fr_1.4fr]">
             <div>
               <ShieldCheck className="h-8 w-8 text-primary" />
               <h3 className="mt-3 font-display text-2xl font-bold">Requisitos</h3>
@@ -283,7 +275,7 @@ export function AdoptionCatalog() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -293,23 +285,26 @@ export function AdoptionCatalog() {
           <MessageCircleQuestion className="h-7 w-7 text-primary" /> Preguntas frecuentes
         </h2>
         <div className="mt-8 space-y-3">
-          {FAQ.map(({ q, a }) => (
-            <details key={q} className="group rounded-2xl border bg-card p-5 shadow-card open:shadow-lift">
+          {FAQ.map(({ q, a }, index) => (
+            <Reveal key={q} delay={index * 80}>
+            <details className="group rounded-2xl border bg-card p-5 shadow-card open:shadow-lift">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
                 {q}
                 <span className="text-xl text-primary transition group-open:rotate-45" aria-hidden="true">+</span>
               </summary>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{a}</p>
             </details>
+            </Reveal>
           ))}
         </div>
-        <div className="mt-10 rounded-3xl bg-gradient-to-br from-sky-500 to-indigo-600 p-8 text-center text-white shadow-lift">
+        <Reveal className="relative mt-10 overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 to-indigo-600 p-8 text-center text-white shadow-lift">
+          <div aria-hidden="true" className="animate-aurora pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/15 blur-2xl" />
           <p className="font-display text-2xl font-extrabold">¿Listo para cambiar una vida?</p>
           <p className="mt-2 text-white/85">Cada adopción libera un lugar para rescatar a otro animal de la calle.</p>
           <Button size="lg" variant="secondary" className="mt-5" asChild>
-            <a href="#animales"><Heart /> Encontrar a mi compañero</a>
+            <a href="#animales"><Heart className="animate-[wiggle_1.4s_ease-in-out_infinite]" /> Encontrar a mi compañero</a>
           </Button>
-        </div>
+        </Reveal>
       </section>
     </>
   );
