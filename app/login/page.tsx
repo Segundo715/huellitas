@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { ClipboardCheck, Command, HeartHandshake, Package, PawPrint } from 'lucide-react';
 import { AuthForm } from '@/components/auth-form';
 import { BrandLogo } from '@/components/brand-logo';
@@ -85,6 +86,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="flex items-center p-6 sm:p-10">
           <div className="w-full">
             <AuthForm next={next} initialError={error} />
+            <Link href="/adopta" className="group mt-6 flex items-center justify-between gap-3 rounded-2xl border border-dashed p-4 text-sm transition hover:border-primary/40 hover:bg-accent/50">
+              <span>
+                <span className="font-semibold">¿Quieres adoptar?</span>
+                <span className="block text-muted-foreground">No necesitas cuenta: conoce a los animales del refugio.</span>
+              </span>
+              <PawPrint aria-hidden="true" className="h-5 w-5 shrink-0 text-primary transition group-hover:rotate-12" />
+            </Link>
           </div>
         </div>
       </div>

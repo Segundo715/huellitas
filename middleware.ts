@@ -3,6 +3,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { canAccessPath, isAppRole } from '@/lib/auth/roles';
 import { getSupabasePublicConfig, isDemoMode } from '@/lib/supabase/config';
 
+// Páginas abiertas al público (adopción). Todo lo demás exige sesión y rol.
+const PUBLIC_PREFIXES = ['/adopta'];
+
+function isPublicPath(pathname: string) {
+  return PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -50,7 +57,7 @@ export async function middleware(request: NextRequest) {
     return user && hasRole ? redirectTo('/') : response;
   }
 
-  if (pathname.startsWith('/api') || pathname.startsWith('/auth')) {
+  if (pathname.startsWith('/api') || pathname.startsWith('/auth') || isPublicPath(pathname)) {
     return response;
   }
 

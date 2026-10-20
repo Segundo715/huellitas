@@ -6,6 +6,10 @@ import { animals as seedAnimals } from '@/lib/mock-data';
 export const ANIMAL_TYPES = ['Perro', 'Gato', 'Otro'] as const;
 export const ANIMAL_STATUSES = ['Disponible', 'En tratamiento', 'Reservado', 'Adoptado'] as const;
 export const ANIMAL_SEXES = ['No especificado', 'Hembra', 'Macho'] as const;
+export const ANIMAL_SIZES = ['Pequeño', 'Mediano', 'Grande'] as const;
+export const ANIMAL_ENERGY = ['Tranquilo', 'Moderado', 'Muy activo'] as const;
+/** Respuestas de sí/no que también admiten «sin evaluar». */
+export const TRI_STATE = ['', 'si', 'no'] as const;
 
 export type Animal = {
   id: string;
@@ -19,6 +23,15 @@ export type Animal = {
   location: string | null;
   notes: string | null;
   photo_webp: string | null;
+  // Perfil público (página /adopta).
+  public_description?: string | null;
+  size?: string | null;
+  energy?: string | null;
+  vaccinated?: boolean | null;
+  sterilized?: boolean | null;
+  good_with_kids?: boolean | null;
+  good_with_dogs?: boolean | null;
+  good_with_cats?: boolean | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -44,6 +57,9 @@ const optionalNumber = (max: number, message: string) =>
     .transform((value) => (value === '' ? null : Number(value)))
     .refine((value) => value === null || (Number.isFinite(value) && value >= 0 && value <= max), message);
 
+const triState = z.enum(TRI_STATE).transform((value) => (value === '' ? null : value === 'si'));
+const toTri = (value: boolean | null | undefined): (typeof TRI_STATE)[number] => (value == null ? '' : value ? 'si' : 'no');
+
 // Valida los datos del formulario (strings) y los convierte al formato de la tabla.
 export const animalFormSchema = z.object({
   name: z.string().trim().min(1, 'El nombre es obligatorio.').max(80, 'Máximo 80 caracteres.'),
@@ -64,6 +80,18 @@ export const animalFormSchema = z.object({
     .max(2000, 'Máximo 2000 caracteres.')
     .transform((value) => value || null),
   photo_webp: z.string().transform((value) => value || null),
+  public_description: z
+    .string()
+    .trim()
+    .max(1500, 'Máximo 1500 caracteres.')
+    .transform((value) => value || null),
+  size: z.union([z.enum(ANIMAL_SIZES), z.literal('')]).transform((value) => value || null),
+  energy: z.union([z.enum(ANIMAL_ENERGY), z.literal('')]).transform((value) => value || null),
+  vaccinated: triState,
+  sterilized: triState,
+  good_with_kids: triState,
+  good_with_dogs: triState,
+  good_with_cats: triState,
 });
 
 export type AnimalFormValues = z.input<typeof animalFormSchema>;
@@ -80,6 +108,14 @@ export const emptyAnimalForm: AnimalFormValues = {
   location: 'Área A / Sala 1',
   notes: '',
   photo_webp: '',
+  public_description: '',
+  size: '',
+  energy: '',
+  vaccinated: '',
+  sterilized: '',
+  good_with_kids: '',
+  good_with_dogs: '',
+  good_with_cats: '',
 };
 
 export function animalToForm(animal: Animal): AnimalFormValues {
@@ -97,6 +133,14 @@ export function animalToForm(animal: Animal): AnimalFormValues {
     location: animal.location ?? '',
     notes: animal.notes ?? '',
     photo_webp: animal.photo_webp ?? '',
+    public_description: animal.public_description ?? '',
+    size: pick(['', ...ANIMAL_SIZES] as const, animal.size ?? '', ''),
+    energy: pick(['', ...ANIMAL_ENERGY] as const, animal.energy ?? '', ''),
+    vaccinated: toTri(animal.vaccinated),
+    sterilized: toTri(animal.sterilized),
+    good_with_kids: toTri(animal.good_with_kids),
+    good_with_dogs: toTri(animal.good_with_dogs),
+    good_with_cats: toTri(animal.good_with_cats),
   };
 }
 
@@ -104,7 +148,8 @@ const DEMO_ANIMALS_KEY = 'huellitas-demo-animals-v2';
 const DEMO_NOTES_KEY = 'huellitas-demo-animal-notes-v2';
 const LEGACY_NOTES_KEY = 'huellitas-demo-animal-notes';
 
-const SELECT_COLUMNS = 'id,name,type,breed,age_years,status,weight_kg,sex,location,notes,photo_webp,created_at,updated_at';
+const SELECT_COLUMNS =
+  'id,name,type,breed,age_years,status,weight_kg,sex,location,notes,photo_webp,public_description,size,energy,vaccinated,sterilized,good_with_kids,good_with_dogs,good_with_cats,created_at,updated_at';
 
 function readDemoAnimals(): Animal[] {
   return readDemoValue<Animal[]>(DEMO_ANIMALS_KEY, seedAnimals as unknown as Animal[]);

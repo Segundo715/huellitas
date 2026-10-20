@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Columns3,
   DollarSign,
+  Globe,
   HandCoins,
   Handshake,
   Heart,
@@ -50,6 +51,7 @@ export const navSections: NavSection[] = [
       { label: 'Solicitudes', href: '/adopciones', icon: Heart, shortcut: 'S', keywords: 'adoptantes' },
       { label: 'Tablero', href: '/adopciones/solicitudes', icon: Columns3, shortcut: 'T', keywords: 'kanban etapas' },
       { label: 'Particulares', href: '/adopciones/particulares', icon: Home, keywords: 'publicaciones' },
+      { label: 'Página pública', href: '/adopta', icon: Globe, keywords: 'catálogo web adoptantes visitantes sitio' },
     ],
   },
   {

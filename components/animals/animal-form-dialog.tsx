@@ -11,7 +11,9 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  ANIMAL_ENERGY,
   ANIMAL_SEXES,
+  ANIMAL_SIZES,
   ANIMAL_STATUSES,
   ANIMAL_TYPES,
   animalFormSchema,
@@ -195,10 +197,55 @@ export function AnimalFormDialog({
           </div>
 
           <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="animal-notes">Notas</Label>
+            <Label htmlFor="animal-notes">Notas internas</Label>
             <Textarea id="animal-notes" rows={3} value={form.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Comportamiento, alimentación, cuidados especiales..." aria-invalid={Boolean(errors.notes)} />
+            <p className="text-xs text-muted-foreground">Solo las ve el equipo.</p>
             <FieldError message={errors.notes} />
           </div>
+
+          <fieldset className="grid gap-4 rounded-2xl border border-dashed p-4 sm:col-span-2 sm:grid-cols-2">
+            <legend className="px-1 text-sm font-semibold">Perfil para la página de adopción</legend>
+            <p className="-mt-2 text-xs text-muted-foreground sm:col-span-2">
+              Se muestra en /adopta cuando el animal está Disponible o Reservado. Escríbelo para las familias, sin datos internos.
+            </p>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="animal-public">Descripción pública</Label>
+              <Textarea id="animal-public" rows={3} value={form.public_description} onChange={(e) => set('public_description', e.target.value)} placeholder="Cómo es, qué le gusta, qué tipo de hogar busca…" aria-invalid={Boolean(errors.public_description)} />
+              <FieldError message={errors.public_description} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="animal-size">Tamaño</Label>
+              <NativeSelect id="animal-size" value={form.size} onChange={(e) => set('size', e.target.value)}>
+                <option value="">Sin indicar</option>
+                {ANIMAL_SIZES.map((option) => <option key={option}>{option}</option>)}
+              </NativeSelect>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="animal-energy">Energía</Label>
+              <NativeSelect id="animal-energy" value={form.energy} onChange={(e) => set('energy', e.target.value)}>
+                <option value="">Sin indicar</option>
+                {ANIMAL_ENERGY.map((option) => <option key={option}>{option}</option>)}
+              </NativeSelect>
+            </div>
+            {(
+              [
+                ['vaccinated', 'Vacunado'],
+                ['sterilized', 'Esterilizado'],
+                ['good_with_kids', 'Convive con niños'],
+                ['good_with_dogs', 'Convive con perros'],
+                ['good_with_cats', 'Convive con gatos'],
+              ] as const
+            ).map(([field, label]) => (
+              <div key={field} className="space-y-2">
+                <Label htmlFor={`animal-${field}`}>{label}</Label>
+                <NativeSelect id={`animal-${field}`} value={form[field]} onChange={(e) => set(field, e.target.value)}>
+                  <option value="">Sin evaluar</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </NativeSelect>
+              </div>
+            ))}
+          </fieldset>
         </form>
 
         <DialogFooter>

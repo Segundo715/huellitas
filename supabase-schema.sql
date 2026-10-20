@@ -157,6 +157,16 @@ create table if not exists public.animals (
 alter table public.animals add column if not exists sex text;
 alter table public.animals add column if not exists photo_webp text;
 
+-- Perfil público para la página de adopción (/adopta). Las notas internas nunca se publican.
+alter table public.animals add column if not exists public_description text;
+alter table public.animals add column if not exists size text;
+alter table public.animals add column if not exists energy text;
+alter table public.animals add column if not exists vaccinated boolean;
+alter table public.animals add column if not exists sterilized boolean;
+alter table public.animals add column if not exists good_with_kids boolean;
+alter table public.animals add column if not exists good_with_dogs boolean;
+alter table public.animals add column if not exists good_with_cats boolean;
+
 do $$
 begin
   if not exists (select 1 from pg_constraint where conname = 'animals_name_length') then
@@ -171,6 +181,13 @@ begin
   -- Fotos WebP en base64: máx. ~450 KB de texto (320 KB binarios).
   if not exists (select 1 from pg_constraint where conname = 'animals_photo_size') then
     alter table public.animals add constraint animals_photo_size check (photo_webp is null or char_length(photo_webp) <= 460000) not valid;
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'animals_public_profile') then
+    alter table public.animals add constraint animals_public_profile check (
+      (public_description is null or char_length(public_description) <= 1500)
+      and (size is null or size in ('Pequeño', 'Mediano', 'Grande'))
+      and (energy is null or energy in ('Tranquilo', 'Moderado', 'Muy activo'))
+    ) not valid;
   end if;
 end $$;
 
@@ -694,6 +711,144 @@ $$;
 
 revoke all on function public.set_user_role(text, text) from public, anon;
 grant execute on function public.set_user_role(text, text) to authenticated;
+
+-- ─────────────────────────────────────────────────────────────
+-- Página pública de adopción (/adopta), sin iniciar sesión.
+-- Los visitantes no tocan las tablas: solo estas funciones, que exponen
+-- únicamente columnas públicas y validan lo que reciben.
+-- ─────────────────────────────────────────────────────────────
+create or replace function public.list_adoptable_animals()
+returns table (
+  id uuid,
+  name text,
+  type text,
+  breed text,
+  age_years numeric,
+  sex text,
+  weight_kg numeric,
+  status text,
+  photo_webp text,
+  public_description text,
+  size text,
+  energy text,
+  vaccinated boolean,
+  sterilized boolean,
+  good_with_kids boolean,
+  good_with_dogs boolean,
+  good_with_cats boolean,
+  created_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select a.id, a.name, a.type, a.breed, a.age_years, a.sex, a.weight_kg, a.status, a.photo_webp,
+         a.public_description, a.size, a.energy, a.vaccinated, a.sterilized,
+         a.good_with_kids, a.good_with_dogs, a.good_with_cats, a.created_at
+  from public.animals a
+  where a.status in ('Disponible', 'Reservado')
+  order by (a.status = 'Disponible') desc, a.created_at desc;
+$$;
+
+create or replace function public.shelter_public_stats()
+returns table (available integer, adopted integer, rescued integer)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select
+    count(*) filter (where status = 'Disponible')::integer,
+    count(*) filter (where status = 'Adoptado')::integer,
+    count(*)::integer
+  from public.animals;
+$$;
+
+create or replace function public.submit_adoption_request(
+  p_animal_id uuid,
+  p_name text,
+  p_email text,
+  p_phone text,
+  p_city text,
+  p_housing text,
+  p_message text,
+  p_website text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_animal record;
+  v_email text := lower(trim(coalesce(p_email, '')));
+  v_name text := trim(coalesce(p_name, ''));
+begin
+  -- Campo trampa: los humanos no lo ven; si viene lleno es un bot. Fingimos éxito.
+  if coalesce(trim(p_website), '') <> '' then
+    return;
+  end if;
+
+  if char_length(v_name) not between 2 and 120 then
+    raise exception 'Escribe tu nombre completo.' using errcode = '22023';
+  end if;
+  if char_length(v_email) > 254 or v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
+    raise exception 'Escribe un correo válido.' using errcode = '22023';
+  end if;
+  if char_length(coalesce(trim(p_phone), '')) not between 8 and 30 then
+    raise exception 'Escribe un teléfono de contacto.' using errcode = '22023';
+  end if;
+  if char_length(coalesce(p_city, '')) > 120 or char_length(coalesce(p_message, '')) > 2000 then
+    raise exception 'El texto es demasiado largo.' using errcode = '22023';
+  end if;
+
+  select a.id, a.name, a.status into v_animal from public.animals a where a.id = p_animal_id;
+  if not found or v_animal.status not in ('Disponible', 'Reservado') then
+    raise exception 'Este animal ya no está en adopción.' using errcode = 'P0002';
+  end if;
+  if v_animal.status = 'Reservado' then
+    raise exception '% ya tiene una adopción en proceso. ¡Conoce a los demás!', v_animal.name using errcode = '22023';
+  end if;
+
+  -- Límites contra spam.
+  if exists (
+    select 1 from public.adoption_requests r
+    where lower(r.email) = v_email and r.animal_id = p_animal_id and r.stage not in ('Aprobada', 'Rechazada')
+  ) then
+    raise exception 'Ya recibimos tu solicitud para %. Te contactaremos pronto.', v_animal.name using errcode = '23505';
+  end if;
+  if (select count(*) from public.adoption_requests r where lower(r.email) = v_email and r.created_at > now() - interval '1 day') >= 3 then
+    raise exception 'Ya enviaste varias solicitudes hoy. Espera nuestra llamada.' using errcode = '54000';
+  end if;
+  if (select count(*) from public.adoption_requests r where r.source = 'Web' and r.created_at > now() - interval '1 hour') >= 40 then
+    raise exception 'Estamos recibiendo muchas solicitudes. Intenta en un rato.' using errcode = '54000';
+  end if;
+
+  insert into public.adoption_requests (applicant_name, email, phone, city, animal_id, animal_name, stage, priority, source, housing, notes)
+  values (
+    v_name,
+    v_email,
+    trim(p_phone),
+    nullif(trim(coalesce(p_city, '')), ''),
+    v_animal.id,
+    v_animal.name,
+    'Nueva',
+    'Media',
+    'Web',
+    case when p_housing in ('Casa con patio', 'Casa', 'Departamento', 'Otro') then p_housing else 'Por confirmar' end,
+    nullif(trim(coalesce(p_message, '')), '')
+  );
+end;
+$$;
+
+revoke all on function public.list_adoptable_animals() from public;
+revoke all on function public.shelter_public_stats() from public;
+revoke all on function public.submit_adoption_request(uuid, text, text, text, text, text, text, text) from public;
+grant usage on schema public to anon;
+grant execute on function public.list_adoptable_animals() to anon, authenticated;
+grant execute on function public.shelter_public_stats() to anon, authenticated;
+grant execute on function public.submit_adoption_request(uuid, text, text, text, text, text, text, text) to anon, authenticated;
 
 -- ─────────────────────────────────────────────────────────────
 -- Datos de ejemplo (solo si las tablas están vacías)
