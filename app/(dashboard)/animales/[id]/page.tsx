@@ -26,11 +26,9 @@ import {
   type Animal,
   type AnimalNote,
 } from '@/lib/data/animals';
-import { useDemoValue } from '@/lib/demo-storage';
-import { calendarEntries } from '@/lib/mock-data';
+import { agendaStore, isClosedEntry, sortAgenda, type AgendaEntry } from '@/lib/data/agenda';
+import { formatTime, localTodayIso } from '@/lib/data/table-store';
 import { createClient } from '@/lib/supabase/client';
-
-type AgendaEntry = { id: number; title: string; date: string; time: string; type: string; assignee: string; status: string; animalId?: string };
 
 const dateFormatter = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
@@ -45,7 +43,7 @@ function AnimalDetail({ id }: { id: string }) {
   const [savingNote, setSavingNote] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [agenda] = useDemoValue<AgendaEntry[]>('huellitas-demo-calendar-entries', calendarEntries);
+  const [agenda, setAgenda] = useState<AgendaEntry[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -54,6 +52,8 @@ function AnimalDetail({ id }: { id: string }) {
       const [record, history] = await Promise.all([getAnimal(supabase, id), listAnimalNotes(supabase, id)]);
       setAnimal(record);
       setNotes(history);
+      // La agenda es secundaria: si falla, el expediente se muestra igual.
+      agendaStore.list(supabase).then(setAgenda, () => setAgenda([]));
       setLoadError('');
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'No se pudo cargar el expediente.');
@@ -134,10 +134,8 @@ function AnimalDetail({ id }: { id: string }) {
     );
   }
 
-  const today = new Date().toISOString().slice(0, 10);
-  const upcoming = agenda
-    .filter((entry) => entry.animalId === id && entry.date >= today)
-    .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+  const today = localTodayIso();
+  const upcoming = sortAgenda(agenda.filter((entry) => entry.animal_id === id && entry.date >= today && !isClosedEntry(entry)));
 
   const missing = [
     !animal.breed && 'raza',
@@ -201,7 +199,7 @@ function AnimalDetail({ id }: { id: string }) {
           <div>
             <p className="text-sm text-muted-foreground">Próxima cita</p>
             <p className="font-semibold">
-              {upcoming[0] ? `${new Date(`${upcoming[0].date}T00:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })} · ${upcoming[0].time}` : 'Sin programar'}
+              {upcoming[0] ? `${new Date(`${upcoming[0].date}T00:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}${upcoming[0].time ? ` · ${formatTime(upcoming[0].time)}` : ''}` : 'Sin programar'}
             </p>
           </div>
         </Card>
@@ -304,9 +302,9 @@ function AnimalDetail({ id }: { id: string }) {
                   <div key={entry.id} className="rounded-xl border p-3">
                     <p className="font-semibold">{entry.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {new Date(`${entry.date}T00:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })} · {entry.time}
+                      {new Date(`${entry.date}T00:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}{entry.time ? ` · ${formatTime(entry.time)}` : ''}
                     </p>
-                    <p className="text-xs text-muted-foreground">{entry.type} · {entry.assignee}</p>
+                    <p className="text-xs text-muted-foreground">{[entry.type, entry.assignee].filter(Boolean).join(' · ')}</p>
                   </div>
                 ))
               ) : (
