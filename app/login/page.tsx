@@ -84,9 +84,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
         <div className="flex items-center p-6 sm:p-10">
           <div className="w-full">
-            <div className="mb-6 flex justify-center lg:justify-start">
-              <BrandLogo full size={112} priority className="shadow-lift ring-4 ring-sky-100 transition-transform duration-500 hover:rotate-[-6deg] hover:scale-105 dark:ring-white/10" />
-            </div>
             <AuthForm next={next} initialError={error} />
           </div>
         </div>
