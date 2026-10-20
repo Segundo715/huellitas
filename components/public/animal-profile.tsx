@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Baby, Cat, Check, CheckCircle2, Dog, Gauge, Heart, HelpCircle, Hourglass, House, PawPrint, Loader2, Ruler, Scale, Send, Share2, ShieldCheck, Syringe, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { AnimalCard, AnimalPhoto, FavoriteButton, SexIcon } from '@/components/public/animal-card';
+import { Reveal } from '@/components/public/reveal';
 import { FieldError } from '@/components/states';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -268,37 +269,37 @@ export function AnimalProfile({ id }: { id: string }) {
           </div>
 
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {facts.map(({ icon: Icon, label, value }) => (
-              <div key={label} className="rounded-2xl border bg-card p-3 shadow-card">
+            {facts.map(({ icon: Icon, label, value }, index) => (
+              <Reveal key={label} delay={index * 90} variant="zoom" className="rounded-2xl border bg-card p-3 shadow-card">
                 <dt className="flex items-center gap-1.5 text-xs text-muted-foreground"><Icon className="h-3.5 w-3.5" /> {label}</dt>
                 <dd className="mt-1 text-sm font-semibold">{value}</dd>
-              </div>
+              </Reveal>
             ))}
           </dl>
 
-          <div className="rounded-3xl border bg-card p-6 shadow-card">
+          <Reveal delay={150} className="rounded-3xl border bg-card p-6 shadow-card">
             <h2 className="font-display text-xl font-bold">Su historia</h2>
             <p className="mt-2 leading-relaxed text-muted-foreground">
               {animal.public_description ?? `${animal.name} está esperando a su familia. Escríbenos y te contamos todo sobre su carácter.`}
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-3xl border bg-card p-5 shadow-card">
+            <Reveal variant="left" className="rounded-3xl border bg-card p-5 shadow-card">
               <h2 className="flex items-center gap-2 font-semibold"><ShieldCheck className="h-5 w-5 text-primary" /> Salud</h2>
               <dl className="mt-3 space-y-2 text-sm">
                 <div className="flex justify-between gap-2"><dt className="flex items-center gap-1.5"><Syringe className="h-4 w-4 text-muted-foreground" /> Vacunas</dt><dd><Answer value={animal.vaccinated} /></dd></div>
                 <div className="flex justify-between gap-2"><dt className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> Esterilizado</dt><dd>{animal.sterilized === false && group === 'Cachorro' ? <span className="text-muted-foreground">Al cumplir la edad</span> : <Answer value={animal.sterilized} />}</dd></div>
               </dl>
-            </div>
-            <div className="rounded-3xl border bg-card p-5 shadow-card">
+            </Reveal>
+            <Reveal delay={120} variant="left" className="rounded-3xl border bg-card p-5 shadow-card">
               <h2 className="flex items-center gap-2 font-semibold"><Baby className="h-5 w-5 text-primary" /> Se lleva bien con</h2>
               <dl className="mt-3 space-y-2 text-sm">
                 <div className="flex justify-between gap-2"><dt className="flex items-center gap-1.5"><Baby className="h-4 w-4 text-muted-foreground" /> Niños</dt><dd><Answer value={animal.good_with_kids} /></dd></div>
                 <div className="flex justify-between gap-2"><dt className="flex items-center gap-1.5"><Dog className="h-4 w-4 text-muted-foreground" /> Perros</dt><dd><Answer value={animal.good_with_dogs} /></dd></div>
                 <div className="flex justify-between gap-2"><dt className="flex items-center gap-1.5"><Cat className="h-4 w-4 text-muted-foreground" /> Gatos</dt><dd><Answer value={animal.good_with_cats} /></dd></div>
               </dl>
-            </div>
+            </Reveal>
           </div>
 
           {reserved ? (
@@ -316,8 +317,10 @@ export function AnimalProfile({ id }: { id: string }) {
         <section className="mt-16">
           <h2 className="font-display text-2xl font-extrabold">También buscan hogar</h2>
           <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {similar.map((other) => (
-              <AnimalCard key={other.id} animal={other} favorite={favorites.isFavorite(other.id)} onToggleFavorite={() => favorites.toggle(other.id)} />
+            {similar.map((other, index) => (
+              <Reveal key={other.id} delay={index * 110} variant="zoom" className="h-full">
+                <AnimalCard animal={other} favorite={favorites.isFavorite(other.id)} onToggleFavorite={() => favorites.toggle(other.id)} />
+              </Reveal>
             ))}
           </div>
         </section>

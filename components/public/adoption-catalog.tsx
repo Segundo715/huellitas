@@ -6,7 +6,7 @@ import { ArrowDown, Baby, CalendarHeart, Cat, Dog, ClipboardCheck, FileText, Hea
 import { AnimatedNumber } from '@/components/animated-number';
 import { AnimalCard } from '@/components/public/animal-card';
 import { HeroCollage, PawTrail, PhotoMarquee, RotatingWord } from '@/components/public/hero-fx';
-import { Reveal } from '@/components/public/reveal';
+import { CountUp, Reveal, RevealHeading } from '@/components/public/reveal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -52,6 +52,19 @@ const FAQ = [
   { q: '¿Puedo adoptar si vivo en departamento?', a: 'Claro. Muchos de nuestros perros pequeños, seniors y casi todos los gatos se adaptan muy bien. En cada perfil verás su nivel de energía para elegir mejor.' },
   { q: '¿Cuánto tarda el proceso?', a: 'Normalmente entre una y dos semanas desde que envías la solicitud hasta que se va contigo a casa.' },
   { q: '¿Qué pasa si no se adapta?', a: 'Te acompañamos para resolverlo. Si de verdad no funciona, el animal regresa al refugio: nunca lo des en adopción por tu cuenta ni lo abandones.' },
+];
+
+const BAND_PAWS = [
+  { top: '12%', left: '6%', size: 34, r: -20, delay: 0 },
+  { top: '70%', left: '14%', size: 26, r: 15, delay: -3 },
+  { top: '20%', left: '88%', size: 30, r: 25, delay: -5 },
+  { top: '78%', left: '80%', size: 24, r: -10, delay: -2 },
+];
+
+const CTA_PAWS = [
+  { top: '15%', left: '8%', r: -15, delay: 0 },
+  { top: '65%', left: '88%', r: 20, delay: -3 },
+  { top: '70%', left: '12%', r: 10, delay: -5 },
 ];
 
 export function AdoptionCatalog() {
@@ -169,8 +182,8 @@ export function AdoptionCatalog() {
       <section id="animales" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="font-display text-3xl font-extrabold tracking-tight">Conócelos</h2>
-            <p className="mt-1 text-muted-foreground">Filtra por lo que buscas y toca un perfil para ver su historia.</p>
+            <RevealHeading>Conócelos</RevealHeading>
+            <Reveal delay={120}><p className="mt-1 text-muted-foreground">Filtra por lo que buscas y toca un perfil para ver su historia.</p></Reveal>
           </div>
           <div className="flex gap-2">
             {SPECIES.map((option) => (
@@ -190,7 +203,7 @@ export function AdoptionCatalog() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 rounded-3xl border bg-card p-4 shadow-card sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <Reveal delay={150} className="mt-6 grid gap-3 rounded-3xl border bg-card p-4 shadow-card sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Busca por nombre o raza…" className="pl-9" aria-label="Buscar animales" />
@@ -221,7 +234,7 @@ export function AdoptionCatalog() {
               <Button variant="ghost" size="sm" onClick={clearFilters}><X /> Limpiar</Button>
             ) : null}
           </div>
-        </div>
+        </Reveal>
 
         {error ? (
           <p role="alert" className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</p>
@@ -235,24 +248,58 @@ export function AdoptionCatalog() {
             {activeFilters ? <Button variant="outline" className="mt-4" onClick={clearFilters}>Ver a todos</Button> : null}
           </div>
         ) : (
-          <div className="stagger mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((animal) => (
-              <AnimalCard key={animal.id} animal={animal} favorite={favorites.isFavorite(animal.id)} onToggleFavorite={() => favorites.toggle(animal.id)} />
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((animal, index) => (
+              <Reveal key={animal.id} delay={(index % 3) * 110} variant="zoom" className="h-full">
+                <AnimalCard animal={animal} favorite={favorites.isFavorite(animal.id)} onToggleFavorite={() => favorites.toggle(animal.id)} />
+              </Reveal>
             ))}
           </div>
         )}
       </section>
 
+      {/* Por qué adoptar */}
+      <section className="relative overflow-hidden bg-sidebar text-white">
+        <div aria-hidden="true" className="animate-aurora pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-sky-500/25 blur-3xl" />
+        <div aria-hidden="true" className="animate-aurora pointer-events-none absolute -bottom-32 right-0 h-80 w-80 rounded-full bg-orange-400/20 blur-3xl [animation-delay:-9s]" />
+        {BAND_PAWS.map((paw, i) => (
+          <PawPrint key={i} aria-hidden="true" className="animate-float-paw absolute text-white" style={{ top: paw.top, left: paw.left, width: paw.size, height: paw.size, animationDelay: `${paw.delay}s`, ['--r' as string]: `${paw.r}deg`, ['--o' as string]: 0.12 }} />
+        ))}
+        <div className="relative mx-auto max-w-6xl px-4 py-16 text-center">
+          <Reveal>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">¿Por qué adoptar?</p>
+            <h2 className="mx-auto mt-3 max-w-3xl font-display text-3xl font-extrabold leading-tight sm:text-4xl">
+              Cuando adoptas, <span className="bg-gradient-to-r from-sky-300 via-violet-300 to-orange-300 bg-clip-text text-transparent">salvas dos vidas</span>.
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-slate-300">La de tu nuevo amigo, y la del siguiente animal que podremos rescatar de la calle con el lugar que deja libre.</p>
+          </Reveal>
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            {[
+              { label: 'esperan un hogar hoy', value: stats?.available ?? available, tone: 'text-sky-300' },
+              { label: 'ya encontraron familia', value: stats?.adopted ?? 0, tone: 'text-emerald-300' },
+              { label: 'animales rescatados', value: stats?.rescued ?? animals.length, tone: 'text-orange-300' },
+            ].map((item, index) => (
+              <Reveal key={item.label} delay={index * 140} variant="zoom" className="rounded-3xl border border-white/10 bg-white/[0.05] p-6 backdrop-blur">
+                <CountUp value={item.value} className={cn('font-display text-5xl font-extrabold', item.tone)} />
+                <p className="mt-1 text-sm text-slate-300">{item.label}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Cómo adoptar */}
       <section id="como-adoptar" className="scroll-mt-20 border-y bg-card/50">
         <div className="mx-auto max-w-6xl px-4 py-14">
-          <h2 className="text-center font-display text-3xl font-extrabold tracking-tight">Adoptar es sencillo</h2>
-          <p className="mx-auto mt-2 max-w-xl text-center text-muted-foreground">Queremos que cada adopción sea para siempre, por eso te acompañamos paso a paso.</p>
-          <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <RevealHeading center>Adoptar es sencillo</RevealHeading>
+          <Reveal delay={120}><p className="mx-auto mt-2 max-w-xl text-center text-muted-foreground">Queremos que cada adopción sea para siempre, por eso te acompañamos paso a paso.</p></Reveal>
+          <Reveal className="relative mt-10">
+          <div aria-hidden="true" className="draw-line absolute left-[12%] right-[12%] top-12 hidden h-0.5 bg-gradient-to-r from-sky-400 via-violet-400 to-orange-400 [transition-duration:1.6s] lg:block" />
+          <ol className="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map(({ icon: Icon, title, text }, index) => (
               <Reveal as="li" key={title} delay={index * 120} className="group relative rounded-3xl border bg-card p-6 shadow-card transition-shadow hover:shadow-lift">
                 <span className="absolute right-5 top-4 font-display text-5xl font-extrabold text-muted/80 dark:text-white/5">{index + 1}</span>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-indigo-500 text-white shadow-lg shadow-sky-500/30 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
+                <div className="pop-in flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-indigo-500 text-white shadow-lg shadow-sky-500/30 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
                   <Icon className="h-6 w-6" />
                 </div>
                 <h3 className="mt-4 font-display text-lg font-bold">{title}</h3>
@@ -260,6 +307,7 @@ export function AdoptionCatalog() {
               </Reveal>
             ))}
           </ol>
+          </Reveal>
 
           <Reveal className="mt-12 grid gap-6 rounded-3xl border bg-card p-6 shadow-card sm:p-8 lg:grid-cols-[1fr_1.4fr]">
             <div>
@@ -268,11 +316,11 @@ export function AdoptionCatalog() {
               <p className="mt-2 text-sm text-muted-foreground">Nada complicado: solo queremos asegurarnos de que el hogar sea seguro y para toda la vida.</p>
             </div>
             <ul className="grid gap-4 sm:grid-cols-2">
-              {REQUIREMENTS.map(({ icon: Icon, text }) => (
-                <li key={text} className="flex gap-3 text-sm">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground"><Icon className="h-4 w-4" /></span>
+              {REQUIREMENTS.map(({ icon: Icon, text }, index) => (
+                <Reveal as="li" key={text} delay={200 + index * 120} variant="left" className="flex gap-3 text-sm">
+                  <span className="pop-in flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground"><Icon className="h-4 w-4" /></span>
                   <span className="pt-1.5">{text}</span>
-                </li>
+                </Reveal>
               ))}
             </ul>
           </Reveal>
@@ -281,9 +329,9 @@ export function AdoptionCatalog() {
 
       {/* Preguntas frecuentes */}
       <section id="preguntas" className="mx-auto max-w-3xl scroll-mt-20 px-4 py-14">
-        <h2 className="flex items-center justify-center gap-2 text-center font-display text-3xl font-extrabold tracking-tight">
-          <MessageCircleQuestion className="h-7 w-7 text-primary" /> Preguntas frecuentes
-        </h2>
+        <RevealHeading center>
+          <MessageCircleQuestion className="mr-2 inline h-7 w-7 align-[-0.15em] text-primary" />Preguntas frecuentes
+        </RevealHeading>
         <div className="mt-8 space-y-3">
           {FAQ.map(({ q, a }, index) => (
             <Reveal key={q} delay={index * 80}>
@@ -292,12 +340,15 @@ export function AdoptionCatalog() {
                 {q}
                 <span className="text-xl text-primary transition group-open:rotate-45" aria-hidden="true">+</span>
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{a}</p>
+              <p className="faq-body mt-3 text-sm leading-relaxed text-muted-foreground">{a}</p>
             </details>
             </Reveal>
           ))}
         </div>
-        <Reveal className="relative mt-10 overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 to-indigo-600 p-8 text-center text-white shadow-lift">
+        <Reveal variant="zoom" className="relative mt-10 overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 to-indigo-600 p-8 text-center text-white shadow-lift">
+          {CTA_PAWS.map((paw, i) => (
+            <PawPrint key={i} aria-hidden="true" className="animate-float-paw absolute h-7 w-7 text-white" style={{ top: paw.top, left: paw.left, animationDelay: `${paw.delay}s`, ['--r' as string]: `${paw.r}deg`, ['--o' as string]: 0.2 }} />
+          ))}
           <div aria-hidden="true" className="animate-aurora pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/15 blur-2xl" />
           <p className="font-display text-2xl font-extrabold">¿Listo para cambiar una vida?</p>
           <p className="mt-2 text-white/85">Cada adopción libera un lugar para rescatar a otro animal de la calle.</p>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Heart, Mars, PawPrint, Venus } from 'lucide-react';
+import { Tilt } from '@/components/public/tilt';
 import { celebrate } from '@/lib/celebrate';
 import { ageGroup, ageGroupLabel, ageLabel, type PublicAnimal } from '@/lib/data/public-adoption';
 import { cn } from '@/lib/utils';
@@ -54,11 +55,12 @@ export function AnimalCard({ animal, favorite, onToggleFavorite }: { animal: Pub
   const reserved = animal.status === 'Reservado';
   const group = ageGroup(animal);
   return (
+    <Tilt>
     <Link
       href={`/adopta/${animal.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-3xl border bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-card shadow-card transition-shadow duration-300 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <div className="relative aspect-square overflow-hidden">
+      <div className="shine relative aspect-square overflow-hidden">
         <AnimalPhoto animal={animal} className={cn('transition-transform duration-500 group-hover:scale-105', reserved && 'grayscale-[40%]')} />
         <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
         <FavoriteButton active={favorite} onToggle={onToggleFavorite} name={animal.name} className="absolute right-3 top-3" />
@@ -67,6 +69,11 @@ export function AnimalCard({ animal, favorite, onToggleFavorite }: { animal: Pub
         ) : group === 'Cachorro' || group === 'Senior' ? (
           <span className={cn('absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-bold shadow', group === 'Senior' ? 'bg-violet-500 text-white' : 'bg-emerald-400 text-[#0f172a]')}>
             {ageGroupLabel(group, animal.type)}
+          </span>
+        ) : null}
+        {!reserved ? (
+          <span className="absolute bottom-14 left-4 inline-flex translate-y-3 items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-[#0f172a] opacity-0 shadow-lg transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            <Heart className="h-3.5 w-3.5 animate-[wiggle_1.2s_ease-in-out_infinite] fill-rose-500 text-rose-500" /> ¡Adóptame!
           </span>
         ) : null}
         <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between text-white">
@@ -80,10 +87,12 @@ export function AnimalCard({ animal, favorite, onToggleFavorite }: { animal: Pub
           {[animal.breed || animal.type, animal.size].filter(Boolean).join(' · ')}
         </p>
         {animal.public_description ? <p className="line-clamp-2 text-sm">{animal.public_description}</p> : null}
-        <span className="mt-auto pt-1 text-sm font-semibold text-primary transition group-hover:translate-x-0.5">
-          {reserved ? 'Ver su historia →' : `Conocer a ${animal.name} →`}
+        <span className="mt-auto inline-flex items-center gap-1 pt-1 text-sm font-semibold text-primary">
+          {reserved ? 'Ver su historia' : `Conocer a ${animal.name}`}
+          <span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1.5">→</span>
         </span>
       </div>
     </Link>
+    </Tilt>
   );
 }
