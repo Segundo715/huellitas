@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Baby, Cat, Check, CheckCircle2, Dog, Gauge, HelpCircle, Hourglass, Loader2, Ruler, Scale, Send, Share2, ShieldCheck, Syringe, X } from 'lucide-react';
+import { ArrowLeft, Baby, Cat, Check, CheckCircle2, Dog, Gauge, Heart, HelpCircle, Hourglass, House, PawPrint, Loader2, Ruler, Scale, Send, Share2, ShieldCheck, Syringe, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { AnimalCard, AnimalPhoto, FavoriteButton, SexIcon } from '@/components/public/animal-card';
 import { FieldError } from '@/components/states';
@@ -85,7 +85,7 @@ function RequestForm({ animal }: { animal: PublicAnimal }) {
     return (
       <div ref={sectionRef} id="solicitud" className="scroll-mt-24 rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-900 dark:bg-emerald-500/10 dark:text-emerald-100">
         <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-        <h3 className="mt-3 font-display text-2xl font-extrabold">¡Gracias, {form.name.split(' ')[0]}! 🐾</h3>
+        <h3 className="mt-3 font-display text-2xl font-extrabold">¡Gracias, {form.name.split(' ')[0]}! <PawPrint aria-hidden="true" className="inline h-6 w-6 text-emerald-500" /></h3>
         <p className="mt-2">Recibimos tu solicitud para adoptar a {animal.name}. Esto es lo que sigue:</p>
         <ol className="mt-4 space-y-2 text-sm">
           <li><strong>1.</strong> Revisamos tu solicitud (1 a 3 días hábiles).</li>
@@ -223,7 +223,7 @@ export function AnimalProfile({ id }: { id: string }) {
   if (!animal) {
     return (
       <div className="mx-auto flex max-w-xl flex-col items-center px-4 py-20 text-center">
-        <span className="text-5xl" aria-hidden="true">🏡</span>
+        <span className="flex h-16 w-16 items-center justify-center rounded-3xl bg-accent text-accent-foreground"><House aria-hidden="true" className="h-8 w-8" /></span>
         <h1 className="mt-4 font-display text-3xl font-extrabold">¡Este peludo ya encontró hogar!</h1>
         <p className="mt-2 text-muted-foreground">O su perfil ya no está publicado. Hay muchos más esperando conocerte.</p>
         <Button className="mt-6" asChild><Link href="/adopta#animales">Ver animales en adopción</Link></Button>
@@ -303,7 +303,7 @@ export function AnimalProfile({ id }: { id: string }) {
 
           {reserved ? (
             <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
-              <h2 className="font-display text-xl font-bold">{animal.name} ya tiene una familia en camino 💛</h2>
+              <h2 className="font-display text-xl font-bold">{animal.name} ya tiene una familia en camino <Heart aria-hidden="true" className="inline h-5 w-5 fill-current text-amber-500" /></h2>
               <p className="mt-1 text-sm">Su adopción está en proceso. Si no se concreta, volverá a estar disponible aquí. Mientras tanto, ¡mira a sus compañeros!</p>
             </div>
           ) : (

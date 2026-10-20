@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowDown, Baby, CalendarHeart, ClipboardCheck, FileText, Heart, Home, IdCard, MessageCircleQuestion, PawPrint, Search, ShieldCheck, Sparkles, Stethoscope, X } from 'lucide-react';
+import { ArrowDown, Baby, CalendarHeart, Cat, Dog, ClipboardCheck, FileText, Heart, Home, IdCard, MessageCircleQuestion, PawPrint, Search, ShieldCheck, Sparkles, Stethoscope, X } from 'lucide-react';
 import { AnimatedNumber } from '@/components/animated-number';
 import { AnimalCard } from '@/components/public/animal-card';
 import { Button } from '@/components/ui/button';
@@ -17,9 +17,9 @@ import { useFavorites } from '@/lib/use-favorites';
 import { cn } from '@/lib/utils';
 
 const SPECIES = [
-  { value: 'todos', label: 'Todos', emoji: '🐾' },
-  { value: 'Perro', label: 'Perros', emoji: '🐶' },
-  { value: 'Gato', label: 'Gatos', emoji: '🐱' },
+  { value: 'todos', label: 'Todos', icon: PawPrint },
+  { value: 'Perro', label: 'Perros', icon: Dog },
+  { value: 'Gato', label: 'Gatos', icon: Cat },
 ] as const;
 
 const AGE_FILTERS: { value: '' | AgeGroup; label: string }[] = [
@@ -188,11 +188,11 @@ export function AdoptionCatalog() {
                 onClick={() => setSpecies(option.value)}
                 aria-pressed={species === option.value}
                 className={cn(
-                  'rounded-2xl border px-4 py-2 text-sm font-semibold transition active:scale-95',
+                  'inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-semibold transition active:scale-95',
                   species === option.value ? 'border-primary bg-primary text-primary-foreground shadow-glow' : 'bg-card hover:border-primary/40',
                 )}
               >
-                <span aria-hidden="true">{option.emoji}</span> {option.label}
+                <option.icon aria-hidden="true" className="h-4 w-4" /> {option.label}
               </button>
             ))}
           </div>
@@ -237,7 +237,7 @@ export function AdoptionCatalog() {
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-[4/5] w-full rounded-3xl" />)}</div>
         ) : filtered.length === 0 ? (
           <div className="mt-6 flex flex-col items-center rounded-3xl border border-dashed px-4 py-16 text-center">
-            <span className="text-4xl" aria-hidden="true">🐾</span>
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground"><PawPrint aria-hidden="true" className="h-7 w-7" /></span>
             <p className="mt-3 font-semibold">{onlyFavorites ? 'Aún no guardas favoritos' : 'Nadie coincide con esa búsqueda'}</p>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">{onlyFavorites ? 'Toca el corazón en un perfil para guardarlo aquí.' : animals.length ? 'Prueba quitando algún filtro: a veces el amigo ideal no es el que imaginabas.' : 'En este momento no hay animales publicados. Vuelve pronto.'}</p>
             {activeFilters ? <Button variant="outline" className="mt-4" onClick={clearFilters}>Ver a todos</Button> : null}

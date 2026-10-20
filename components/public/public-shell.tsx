@@ -48,7 +48,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <p className="border-t py-4 text-center text-xs text-muted-foreground">
-          Hecho con 🐾 por el equipo de Huellitas · Fotos de Wikimedia Commons con licencia libre
+          Hecho con <PawPrint aria-label="cariño" className="inline h-3.5 w-3.5 text-primary" /> por el equipo de Huellitas · Fotos de Wikimedia Commons con licencia libre
         </p>
       </footer>
     </div>
