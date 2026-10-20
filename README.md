@@ -51,6 +51,7 @@ La clave publicable se utiliza con RLS. No pongas claves `sb_secret_*` ni `servi
 
 1. En Supabase → **Project Settings → API**, copia la **Project URL** y la **publishable key** a `.env.local`.
 2. Abre **SQL Editor**, pega `supabase-schema.sql` completo y ejecútalo (es re-ejecutable).
+   - Opcional: ejecuta también `supabase-animales.sql` para cargar 19 animales de ejemplo con fotos reales (WebP en `public/fotos/animales`, créditos en `CREDITOS.md`).
 3. En **Authentication → Users** crea tus usuarios (Add user → con contraseña, marcando *Auto Confirm*).
 4. Asigna el rol a cada usuario en el SQL Editor: `select public.set_user_role('correo@ejemplo.com', 'admin');` (roles: `admin`, `operador`, `voluntario`). El usuario debe cerrar sesión y volver a entrar.
 5. Pon `NEXT_PUBLIC_DEMO_MODE=false` y reinicia `npm run dev`.

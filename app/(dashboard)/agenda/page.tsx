@@ -11,7 +11,7 @@ type AgendaEntry = { id: number; title: string; date: string; time: string; type
 
 export default function AgendaPage() {
   const [entries, setEntries] = useDemoValue<AgendaEntry[]>('huellitas-demo-calendar-entries', calendarEntries);
-  const [animalRecords] = useDemoValue('huellitas-demo-animals', initialAnimals);
+  const [animalRecords] = useDemoValue('huellitas-demo-animals-v2', initialAnimals);
   const [formOpen, setFormOpen] = useState(false);
   const [newEntry, setNewEntry] = useState({ title: '', date: '', time: '', type: 'Cita', assignee: '', animalId: '' });
 

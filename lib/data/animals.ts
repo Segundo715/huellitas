@@ -100,7 +100,7 @@ export function animalToForm(animal: Animal): AnimalFormValues {
   };
 }
 
-const DEMO_ANIMALS_KEY = 'huellitas-demo-animals';
+const DEMO_ANIMALS_KEY = 'huellitas-demo-animals-v2';
 const DEMO_NOTES_KEY = 'huellitas-demo-animal-notes-v2';
 const LEGACY_NOTES_KEY = 'huellitas-demo-animal-notes';
 
