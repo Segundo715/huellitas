@@ -72,7 +72,7 @@ export function AnimalCard({ animal, favorite, onToggleFavorite }: { animal: Pub
           </span>
         ) : null}
         {!reserved ? (
-          <span className="absolute bottom-14 left-4 inline-flex translate-y-3 items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-[#0f172a] opacity-0 shadow-lg transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          <span className="absolute bottom-14 left-4 inline-flex translate-y-3 items-center gap-1.5 rounded-full bg-[#fff] px-3 py-1 text-xs font-bold text-[#0f172a] opacity-0 shadow-lg transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
             <Heart className="h-3.5 w-3.5 animate-[wiggle_1.2s_ease-in-out_infinite] fill-rose-500 text-rose-500" /> ¡Adóptame!
           </span>
         ) : null}

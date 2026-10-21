@@ -146,7 +146,7 @@ function EventCard({ event, canManage, onEdit, onDelete }: { event: ShelterEvent
           <p className="font-display text-4xl font-extrabold leading-none">{date.getDate()}</p>
           <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-white/85">{date.toLocaleDateString('es-MX', { weekday: 'short' }).replace('.', '')} · {date.toLocaleDateString('es-MX', { month: 'long' })}</p>
         </div>
-        <span className={cn('rounded-full bg-black/25 px-2.5 py-1 text-xs font-semibold backdrop-blur', days === 0 && 'animate-pulse bg-white text-[#0f172a]')}>{countdown(days)}</span>
+        <span className={cn('rounded-full bg-black/25 px-2.5 py-1 text-xs font-semibold backdrop-blur', days === 0 && 'animate-pulse bg-[#fff] text-[#0f172a]')}>{countdown(days)}</span>
         {canManage ? (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>

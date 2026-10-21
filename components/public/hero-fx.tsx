@@ -164,7 +164,7 @@ export function HeroCollage({ animals }: { animals: PublicAnimal[] }) {
             {speaker?.slot === index ? (
               <span
                 key={speaker.key}
-                className="bubble-pop pointer-events-none absolute -top-12 left-1/2 z-20 whitespace-nowrap rounded-2xl bg-white px-3.5 py-2 text-sm font-bold text-[#0f172a] shadow-lift after:absolute after:left-1/2 after:top-full after:-ml-2 after:border-8 after:border-transparent after:border-t-white"
+                className="bubble-pop pointer-events-none absolute -top-12 left-1/2 z-20 whitespace-nowrap rounded-2xl bg-[#fff] px-3.5 py-2 text-sm font-bold text-[#0f172a] shadow-lift after:absolute after:left-1/2 after:top-full after:-ml-2 after:border-8 after:border-transparent after:border-t-white"
               >
                 {speaker.phrase}
               </span>
