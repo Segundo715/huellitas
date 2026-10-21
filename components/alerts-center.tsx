@@ -148,9 +148,9 @@ export function AlertsCenter() {
         {loading ? (
           <div className="space-y-3 p-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
         ) : visible.length === 0 ? (
-          <EmptyState icon={CheckCircle2} title="Todo en orden" description="No hay incidencias abiertas. ¡Buen trabajo, equipo! 🐾" />
+          <EmptyState icon={CheckCircle2} title="Todo en orden" description="No hay incidencias abiertas. ¡Buen trabajo, equipo!" />
         ) : (
-          <ul className="divide-y">
+          <ul className="stagger-rows divide-y">
             {visible.map((alert) => {
               const style = levelStyle[alert.level];
               const Icon = alert.icon;

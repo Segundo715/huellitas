@@ -204,7 +204,7 @@ export function AnimalManager() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-4 py-14 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+            <div className="float-card flex h-12 w-12 items-center justify-center rounded-2xl [animation-duration:4s] bg-accent text-accent-foreground">
               <PawPrint className="h-6 w-6" />
             </div>
             <p className="mt-3 font-semibold">{animals.length === 0 ? 'Aún no hay expedientes' : 'Sin resultados'}</p>
@@ -258,7 +258,7 @@ export function AnimalManager() {
             </div>
 
             {/* Móvil: tarjetas */}
-            <ul className="divide-y md:hidden">
+            <ul className="stagger-rows divide-y md:hidden">
               {filtered.map((animal) => (
                 <li key={animal.id} className="flex items-center gap-3 p-4">
                   <Link href={`/animales/${animal.id}`} className="flex min-w-0 flex-1 items-center gap-3">

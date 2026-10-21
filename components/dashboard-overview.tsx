@@ -292,7 +292,7 @@ function StaffOverview({ name }: { name: string }) {
             ) : activeAdoptions.length === 0 ? (
               <p className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">No hay solicitudes en proceso.</p>
             ) : (
-              <ul className="divide-y">
+              <ul className="stagger-rows divide-y">
                 {activeAdoptions.slice(0, 5).map((request) => (
                   <li key={request.id} className="flex items-center gap-3 py-2.5">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 text-xs font-bold text-white">

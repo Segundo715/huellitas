@@ -84,7 +84,7 @@ export function TransactionFormDialog({
       const supabase = createClient();
       const saved = transaction ? await updateTransaction(supabase, transaction.id, parsed.data) : await createTransaction(supabase, parsed.data);
       if (transaction) toast.success('Movimiento actualizado');
-      else if (saved.kind === 'ingreso') toast.success(`¡${formatMoney(saved.amount)} más para el refugio! 🐾`, { description: saved.contact ? `Gracias, ${saved.contact}.` : 'Ingreso registrado.' });
+      else if (saved.kind === 'ingreso') toast.success(`¡${formatMoney(saved.amount)} más para el refugio!`, { description: saved.contact ? `Gracias, ${saved.contact}.` : 'Ingreso registrado.' });
       else toast.success('Gasto registrado');
       onSaved(saved);
       onOpenChange(false);

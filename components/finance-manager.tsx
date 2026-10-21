@@ -353,7 +353,7 @@ export function FinanceManager() {
           <div className="space-y-3 p-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-4 py-14 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+            <div className="float-card flex h-12 w-12 items-center justify-center rounded-2xl [animation-duration:4s] bg-accent text-accent-foreground">
               <HandCoins className="h-6 w-6" />
             </div>
             <p className="mt-3 font-semibold">{items.length === 0 ? 'Aún no hay movimientos' : 'Sin movimientos en este periodo'}</p>
@@ -398,7 +398,7 @@ export function FinanceManager() {
               </Table>
             </div>
 
-            <ul className="divide-y md:hidden">
+            <ul className="stagger-rows divide-y md:hidden">
               {filtered.map((item) => (
                 <li key={item.id} className={cn('flex items-center gap-3 p-4', item.id === recentId && 'row-flash')}>
                   <button type="button" onClick={() => openEdit(item)} className="min-w-0 flex-1 text-left">

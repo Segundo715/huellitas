@@ -20,6 +20,7 @@ import { compressImageToWebp } from '@/lib/image-compression';
 import { LISTING_PET_TYPES, emptyListingForm, listingFormSchema, listingStatusVariant, listingStore, listingToForm, type AdoptionListing, type ListingFormValues } from '@/lib/data/listings';
 import { timeAgo } from '@/lib/data/reports';
 import { fieldErrors } from '@/lib/data/table-store';
+import { celebrateFrom } from '@/lib/celebrate';
 import { createClient } from '@/lib/supabase/client';
 import { useCreateParam } from '@/lib/use-create-param';
 
@@ -307,7 +308,7 @@ export function ListingsManager() {
                   <div className="mt-4 flex gap-2 pt-1">
                     {listing.status === 'Pendiente' ? (
                       <>
-                        <Button className="flex-1" onClick={() => void review(listing, 'Aprobada')} disabled={busy}>{busy ? <Loader2 className="animate-spin" /> : <Check />} Aprobar</Button>
+                        <Button className="flex-1" onClick={(event) => { celebrateFrom(event.currentTarget, 14); void review(listing, 'Aprobada'); }} disabled={busy}>{busy ? <Loader2 className="animate-spin" /> : <Check />} Aprobar</Button>
                         <Button variant="outline" className="flex-1" onClick={() => void review(listing, 'Rechazada')} disabled={busy}><X /> Rechazar</Button>
                       </>
                     ) : (

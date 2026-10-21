@@ -33,6 +33,7 @@ import {
   type CareUrgency,
 } from '@/lib/data/care';
 import { fieldErrors } from '@/lib/data/table-store';
+import { celebrateFrom } from '@/lib/celebrate';
 import { createClient } from '@/lib/supabase/client';
 import { useCreateParam } from '@/lib/use-create-param';
 import { cn } from '@/lib/utils';
@@ -269,7 +270,7 @@ export function CareManager() {
                   <CardDescription>{section.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2">
+                  <ul className="stagger-rows space-y-2">
                     {grouped[section.key].map((reminder) => {
                       const animal = reminder.animal_id ? animalById.get(reminder.animal_id) : undefined;
                       const urgency = section.key;
@@ -293,7 +294,7 @@ export function CareManager() {
                             {reminder.notes ? <p className="mt-1 text-sm text-muted-foreground">{reminder.notes}</p> : null}
                           </div>
                           {urgency !== 'Completado' ? (
-                            <Button size="sm" variant="outline" onClick={() => void setStatus(reminder, 'Completada')} disabled={busyId === reminder.id} className="shrink-0 text-emerald-700 hover:bg-emerald-50">
+                            <Button size="sm" variant="outline" onClick={(event) => { celebrateFrom(event.currentTarget, 10); void setStatus(reminder, 'Completada'); }} disabled={busyId === reminder.id} className="shrink-0 text-emerald-700 hover:bg-emerald-50">
                               {busyId === reminder.id ? <Loader2 className="animate-spin" /> : <CheckCircle2 />} <span className="hidden sm:inline">Hecho</span>
                             </Button>
                           ) : null}
@@ -325,7 +326,7 @@ export function CareManager() {
           </CardHeader>
           <CardContent>
             {inTreatment.length ? (
-              <ul className="space-y-2">
+              <ul className="stagger-rows space-y-2">
                 {inTreatment.map((animal) => {
                   const next = reminders.find((r) => r.animal_id === animal.id && r.status !== 'Completada');
                   return (

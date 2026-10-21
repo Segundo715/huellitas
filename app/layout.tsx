@@ -1,7 +1,9 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
+import { Suspense } from 'react';
 import { AuthProvider } from '@/components/auth-provider';
+import { RouteProgress } from '@/components/route-progress';
 import { ThemeProvider, themeInitScript } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { getServerSessionUser } from '@/lib/supabase/server';
@@ -31,6 +33,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="min-h-screen font-sans antialiased">
         <ThemeProvider>
+          <Suspense fallback={null}>
+            <RouteProgress />
+          </Suspense>
           <AuthProvider initialUser={initialUser}>{children}</AuthProvider>
           <Toaster />
         </ThemeProvider>

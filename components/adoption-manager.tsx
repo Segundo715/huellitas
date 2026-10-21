@@ -49,6 +49,7 @@ import {
   type AdoptionStage,
 } from '@/lib/data/adoptions';
 import { listAnimals, setAnimalStatus, type Animal } from '@/lib/data/animals';
+import { celebrate } from '@/lib/celebrate';
 import { createClient } from '@/lib/supabase/client';
 import { useCreateParam } from '@/lib/use-create-param';
 import { cn } from '@/lib/utils';
@@ -168,6 +169,7 @@ export function AdoptionManager({ view }: { view: View }) {
           try {
             await setAnimalStatus(createClient(), animal.id, 'Adoptado');
             setAnimals((current) => current.map((a) => (a.id === animal.id ? { ...a, status: 'Adoptado' } : a)));
+            celebrate();
             toast.success(`${animal.name} ahora figura como adoptado`);
           } catch (error) {
             toast.error(error instanceof Error ? error.message : 'No se pudo actualizar el expediente.');
@@ -183,7 +185,10 @@ export function AdoptionManager({ view }: { view: View }) {
       const saved = await updateAdoption(createClient(), request.id, { stage });
       replace(saved);
       toast.success(`${request.applicant_name}: ${stage}`);
-      if (stage === 'Aprobada') offerMarkAdopted(saved);
+      if (stage === 'Aprobada') {
+        celebrate();
+        offerMarkAdopted(saved);
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo mover la solicitud.');
     } finally {
@@ -194,7 +199,10 @@ export function AdoptionManager({ view }: { view: View }) {
   const handleSaved = (saved: AdoptionRequest) => {
     const previous = requests.find((r) => r.id === saved.id);
     replace(saved);
-    if (saved.stage === 'Aprobada' && previous?.stage !== 'Aprobada') offerMarkAdopted(saved);
+    if (saved.stage === 'Aprobada' && previous?.stage !== 'Aprobada') {
+      celebrate();
+      offerMarkAdopted(saved);
+    }
   };
 
   const handleDelete = async () => {
@@ -277,7 +285,7 @@ export function AdoptionManager({ view }: { view: View }) {
 
   const emptyState = (
     <div className="flex flex-col items-center justify-center px-4 py-14 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+      <div className="float-card flex h-12 w-12 items-center justify-center rounded-2xl [animation-duration:4s] bg-accent text-accent-foreground">
         <Heart className="h-6 w-6" />
       </div>
       <p className="mt-3 font-semibold">{requests.length === 0 ? 'Aún no hay solicitudes' : 'Sin resultados'}</p>
@@ -413,7 +421,7 @@ export function AdoptionManager({ view }: { view: View }) {
                 </Table>
               </div>
 
-              <ul className="divide-y md:hidden">
+              <ul className="stagger-rows divide-y md:hidden">
                 {filtered.map((request) => (
                   <li key={request.id} className="flex items-start gap-3 p-4">
                     <button type="button" onClick={() => openEdit(request)} className="min-w-0 flex-1 text-left">

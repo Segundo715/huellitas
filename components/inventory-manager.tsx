@@ -369,7 +369,7 @@ export function InventoryManager() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-4 py-14 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
+            <div className="float-card flex h-12 w-12 items-center justify-center rounded-2xl [animation-duration:4s] bg-violet-100 text-violet-700">
               <Boxes className="h-6 w-6" />
             </div>
             <p className="mt-3 font-semibold">{items.length === 0 ? 'El inventario está vacío' : 'Sin resultados'}</p>
@@ -415,7 +415,7 @@ export function InventoryManager() {
               </Table>
             </div>
 
-            <ul className="divide-y md:hidden">
+            <ul className="stagger-rows divide-y md:hidden">
               {filtered.map((item) => (
                 <li key={item.id} className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { AlertCircle, ArrowRight, Check, Eye, EyeOff, Loader2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ArrowRight, Check, CheckCircle2, Eye, EyeOff, Hand, Loader2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { z } from 'zod';
 import { clearStoredSession, demoUsers, setStoredSession } from '@/lib/auth-demo';
 import { isAppRole } from '@/lib/auth/roles';
@@ -45,6 +45,24 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
   const [showPassword, setShowPassword] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Sacude el formulario para que el error no pase desapercibido.
+  const shake = () => {
+    const form = formRef.current;
+    if (!form) return;
+    form.classList.remove('shake');
+    void form.offsetWidth;
+    form.classList.add('shake');
+  };
+
+  // Muestra «¡Bienvenido!» un instante antes de entrar al panel.
+  const enter = async (destination: string) => {
+    setSuccess(true);
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    window.location.assign(destination);
+  };
   const [error, setError] = useState(initialError ? (errorMessages[initialError] ?? '') : '');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({ email: demoMode ? 'admin@huellitas.org' : '', password: demoMode ? 'admin123' : '' });
@@ -74,6 +92,7 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
       }
       setFieldErrors(errors);
       (errors.email ? emailRef : passwordRef).current?.focus();
+      shake();
       return;
     }
 
@@ -90,7 +109,7 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
 
         clearStoredSession();
         setStoredSession({ id: email, email, name: user.name, role: user.role });
-        window.location.assign(safeNext(next));
+        await enter(safeNext(next));
         return;
       }
 
@@ -110,12 +129,13 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
       }
 
       // Recarga completa para que el middleware lea las cookies nuevas.
-      window.location.assign(safeNext(next));
+      await enter(safeNext(next));
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : '';
       setError(message.toLowerCase().includes('fetch') ? 'No hay conexión con el servidor. Revisa tu internet.' : message || 'No se pudo iniciar sesión.');
       setLoading(false);
       passwordRef.current?.select();
+      shake();
     }
   };
 
@@ -126,9 +146,7 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-primary">Acceso</p>
       <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
         Hola de nuevo{' '}
-        <span aria-hidden="true" className="inline-block origin-[70%_70%] animate-[wiggle_1.2s_ease-in-out_1]">
-          👋
-        </span>
+        <Hand aria-hidden="true" className="inline-block h-8 w-8 origin-[70%_80%] animate-[wiggle_1.2s_ease-in-out_2] align-[-0.1em] text-amber-500 sm:h-9 sm:w-9" />
       </h2>
       <p className="mt-2 text-muted-foreground">Inicia sesión para gestionar el refugio.</p>
 
@@ -162,7 +180,7 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
         </div>
       ) : null}
 
-      <form onSubmit={handleSubmit} className="mt-8" noValidate aria-busy={loading}>
+      <form ref={formRef} onSubmit={handleSubmit} onAnimationEnd={(e) => e.currentTarget.classList.remove('shake')} className="mt-8" noValidate aria-busy={loading}>
         <fieldset disabled={loading} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email">Correo</Label>
@@ -242,10 +260,20 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
             </div>
           ) : null}
 
-          <Button type="submit" size="lg" className="group w-full">
-            {loading ? <Loader2 aria-hidden="true" className="animate-spin" /> : null}
-            {loading ? 'Iniciando sesión…' : 'Entrar al panel'}
-            {loading ? null : <ArrowRight aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />}
+          <Button type="submit" size="lg" className={cn('group w-full transition-colors duration-300', success && '!bg-none bg-emerald-500 shadow-emerald-500/30 hover:bg-emerald-500 disabled:opacity-100')}>
+            {success ? (
+              <>
+                <CheckCircle2 aria-hidden="true" className="animate-in zoom-in-50 duration-300" /> ¡Bienvenido!
+              </>
+            ) : loading ? (
+              <>
+                <Loader2 aria-hidden="true" className="animate-spin" /> Iniciando sesión…
+              </>
+            ) : (
+              <>
+                Entrar al panel <ArrowRight aria-hidden="true" className="transition-transform group-hover:translate-x-1" />
+              </>
+            )}
           </Button>
         </fieldset>
       </form>

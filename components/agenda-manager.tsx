@@ -32,6 +32,7 @@ import {
 } from '@/lib/data/agenda';
 import { listAnimals, type Animal } from '@/lib/data/animals';
 import { addDaysIso, fieldErrors, formatDayLabel, formatTime, localTodayIso } from '@/lib/data/table-store';
+import { celebrateFrom } from '@/lib/celebrate';
 import { createClient } from '@/lib/supabase/client';
 import { useCreateParam } from '@/lib/use-create-param';
 import { cn } from '@/lib/utils';
@@ -300,7 +301,7 @@ export function AgendaManager() {
                   {formatDayLabel(date)}
                   <span className="font-normal text-muted-foreground">· {items.length}</span>
                 </h2>
-                <ul className="space-y-2">
+                <ul className="stagger-rows space-y-2">
                   {items.map((entry) => {
                     const style = agendaTypeStyle(entry.type);
                     const closed = isClosedEntry(entry);
@@ -332,7 +333,7 @@ export function AgendaManager() {
                         </div>
                         <div className="flex shrink-0 items-center gap-1">
                           {!closed ? (
-                            <Button variant="ghost" size="icon" onClick={() => void complete(entry)} aria-label={`Marcar «${entry.title}» como completada`} className="text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700">
+                            <Button variant="ghost" size="icon" onClick={(event) => { celebrateFrom(event.currentTarget, 10); void complete(entry); }} aria-label={`Marcar «${entry.title}» como completada`} className="text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700">
                               <CheckCircle2 />
                             </Button>
                           ) : null}

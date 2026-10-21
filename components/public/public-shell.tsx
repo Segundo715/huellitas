@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { HeartHandshake, LogIn, PawPrint } from 'lucide-react';
 import { BrandLogo } from '@/components/brand-logo';
 import { Reveal } from '@/components/public/reveal';
+import { ScrollProgress } from '@/components/public/scroll-progress';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 // Marco de las páginas públicas: cabecera ligera y pie con contacto.
@@ -9,9 +10,10 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl">
+        <ScrollProgress />
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
           <Link href="/adopta" className="flex items-center gap-2.5">
-            <BrandLogo size={38} priority />
+            <BrandLogo size={38} priority className="transition-transform duration-500 hover:rotate-[-12deg] hover:scale-110" />
             <span className="font-display text-lg font-extrabold tracking-tight">Huellitas</span>
           </Link>
           <nav aria-label="Principal" className="flex items-center gap-1 text-sm font-medium">

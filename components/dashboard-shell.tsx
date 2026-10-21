@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AlertTriangle, Bell, Database, FlaskConical, Keyboard, LogOut, Menu, Monitor, Moon, PawPrint, Search, Sun, X } from 'lucide-react';
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth-provider';
 import { BrandLogo } from '@/components/brand-logo';
@@ -43,6 +43,30 @@ function Logo({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function Sidebar({ role, pathname, onNavigate, mode, onOpenPalette }: { role: AppRole; pathname: string; onNavigate?: () => void; mode: 'demo' | 'supabase'; onOpenPalette: () => void }) {
+  // Un solo indicador que se desliza hasta la sección activa.
+  const navRef = useRef<HTMLElement>(null);
+  const [indicator, setIndicator] = useState<{ top: number; ready: boolean } | null>(null);
+
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    const place = (animate: boolean) => {
+      const active = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!active) {
+        setIndicator(null);
+        return;
+      }
+      const top = active.offsetTop + active.offsetHeight / 2 - 10;
+      // La primera vez se coloca sin animar; después, se desliza.
+      setIndicator((current) => (current?.top === top ? current : { top, ready: animate && current !== null }));
+    };
+    place(true);
+    // Si cambia el alto de algo (fuentes, logo, ancho de ventana), se recoloca sin animación.
+    const observer = new ResizeObserver(() => place(false));
+    nav?.querySelectorAll(':scope > div').forEach((section) => observer.observe(section));
+    void document.fonts?.ready.then(() => place(false));
+    return () => observer.disconnect();
+  }, [pathname, role]);
+
   return (
     <div className="relative flex h-full flex-col">
       {/* Resplandores decorativos */}
@@ -66,7 +90,14 @@ function Sidebar({ role, pathname, onNavigate, mode, onOpenPalette }: { role: Ap
         </button>
       </div>
 
-      <nav className="relative -mx-2 flex-1 space-y-6 overflow-y-auto px-2" aria-label="Principal">
+      <nav ref={navRef} className="relative -mx-2 flex-1 space-y-6 overflow-y-auto px-2" aria-label="Principal">
+        {indicator ? (
+          <span
+            aria-hidden="true"
+            className={cn('absolute left-2 z-10 h-5 w-[3px] rounded-full bg-gradient-to-b from-sky-300 to-indigo-400 shadow-[0_0_10px_rgb(56_189_248/0.7)]', indicator.ready && 'transition-[top] duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)]')}
+            style={{ top: indicator.top }}
+          />
+        ) : null}
         {visibleSections(role).map((section) => (
           <div key={section.title}>
             <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">{section.title}</p>
@@ -85,11 +116,7 @@ function Sidebar({ role, pathname, onNavigate, mode, onOpenPalette }: { role: Ap
                       active ? 'bg-gradient-to-r from-white/[0.12] to-white/[0.03] text-white' : 'text-slate-400 hover:translate-x-0.5 hover:bg-white/5 hover:text-white',
                     )}
                   >
-                    <span
-                      aria-hidden="true"
-                      className={cn('absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full bg-gradient-to-b from-sky-300 to-indigo-400 transition-all duration-300', active ? 'opacity-100' : 'h-0 opacity-0')}
-                    />
-                    <Icon aria-hidden="true" className={cn('h-4 w-4 shrink-0 transition-colors', active ? 'text-sky-300' : 'group-hover:text-sky-300')} />
+                    <Icon aria-hidden="true" className={cn('h-4 w-4 shrink-0 transition-all duration-300', active ? 'scale-110 text-sky-300' : 'group-hover:-rotate-6 group-hover:scale-110 group-hover:text-sky-300')} />
                     <span className="flex-1">{item.label}</span>
                     {item.shortcut ? (
                       <span className="hidden text-[10px] font-semibold tracking-wider text-slate-600 opacity-0 transition group-hover:opacity-100 xl:inline">G {item.shortcut}</span>
@@ -288,7 +315,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                         </DropdownMenuItem>
                       ))
                     ) : (
-                      <p className="px-3 py-6 text-center text-sm text-muted-foreground">Todo en orden 🐾</p>
+                      <p className="flex items-center justify-center gap-2 px-3 py-6 text-sm text-muted-foreground"><PawPrint className="h-4 w-4 text-primary" /> Todo en orden</p>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -323,7 +350,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                       <button
                         key={value}
                         type="button"
-                        onClick={() => setTheme(value)}
+                        onClick={(event) => setTheme(value, { x: event.clientX, y: event.clientY })}
                         aria-pressed={theme === value}
                         className={cn(
                           'flex flex-col items-center gap-1 rounded-lg border px-2 py-2 text-xs font-medium transition',

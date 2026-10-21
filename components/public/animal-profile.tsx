@@ -249,8 +249,8 @@ export function AnimalProfile({ id }: { id: string }) {
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_1.05fr]">
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <div className="relative aspect-square overflow-hidden rounded-[2rem] border shadow-lift">
-            <AnimalPhoto animal={animal} />
+          <div className="relative aspect-square overflow-hidden rounded-[2rem] border shadow-lift animate-in fade-in-0 zoom-in-95 duration-700">
+            <AnimalPhoto animal={animal} className="animate-[photo-settle_1.4s_cubic-bezier(0.22,1,0.36,1)_both]" />
             {reserved ? <span className="absolute left-4 top-4 rounded-full bg-amber-400 px-3 py-1.5 text-sm font-bold text-[#0f172a] shadow">Adopción en proceso</span> : null}
             <FavoriteButton active={favorites.isFavorite(animal.id)} onToggle={() => favorites.toggle(animal.id)} name={animal.name} className="absolute right-4 top-4 h-12 w-12" />
           </div>

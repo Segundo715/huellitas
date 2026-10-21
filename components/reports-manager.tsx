@@ -134,7 +134,7 @@ function ReportFormDialog({ open, onOpenChange, onSaved }: { open: boolean; onOp
                 {locating ? <Loader2 className="animate-spin" /> : <LocateFixed />} <span className="hidden sm:inline">Mi ubicación</span>
               </Button>
             </div>
-            {hasCoords ? <p className="text-xs text-emerald-700">📍 Coordenadas: {form.latitude}, {form.longitude}</p> : null}
+            {hasCoords ? <p className="flex items-center gap-1 text-xs text-emerald-700"><MapPin className="h-3 w-3" /> Coordenadas: {form.latitude}, {form.longitude}</p> : null}
             <FieldError message={errors.address} />
           </div>
           <div className="space-y-2">
@@ -176,7 +176,7 @@ function ReportDetail({ report, canManage, onSaved, onDelete }: { report: Citize
     setSaving(true);
     try {
       const saved = await reportStore.update(createClient(), report.id, { status, assignee: assignee.trim() || null, resolution_notes: notes.trim() || null });
-      toast.success(status === 'Atendido' && report.status !== 'Atendido' ? '¡Caso atendido! 🐾' : 'Reporte actualizado');
+      toast.success(status === 'Atendido' && report.status !== 'Atendido' ? '¡Caso atendido!' : 'Reporte actualizado');
       onSaved(saved);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo actualizar.');
@@ -367,7 +367,7 @@ export function ReportsManager() {
           ) : filtered.length === 0 ? (
             <EmptyState icon={Megaphone} title={reports.length ? 'Nada en esta vista' : 'Sin reportes'} description={reports.length ? 'Cambia el filtro o la búsqueda.' : 'Cuando llegue un aviso, regístralo aquí.'} />
           ) : (
-            <ul className="max-h-[38rem] divide-y overflow-y-auto">
+            <ul className="stagger-rows max-h-[38rem] divide-y overflow-y-auto">
               {filtered.map((report) => (
                 <li key={report.id}>
                   <button

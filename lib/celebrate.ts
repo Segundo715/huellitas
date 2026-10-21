@@ -46,3 +46,10 @@ export function celebrate(origin?: { x: number; y: number }, count = 26) {
 
   window.setTimeout(() => layer.remove(), 1600);
 }
+
+/** Ráfaga pequeña desde un elemento (p. ej. el botón «Hecho»). */
+export function celebrateFrom(element: Element | null | undefined, count = 12) {
+  if (!element) return celebrate(undefined, count);
+  const rect = element.getBoundingClientRect();
+  celebrate({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }, count);
+}

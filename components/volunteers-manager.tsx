@@ -426,7 +426,7 @@ export function VolunteersManager() {
                   {grouped.map(([date, list]) => (
                     <section key={date}>
                       <h3 className={cn('mb-2 text-sm font-semibold', date === today && 'text-primary')}>{formatDayLabel(date)}</h3>
-                      <ul className="space-y-2">{list.map((shift) => shiftRow(shift))}</ul>
+                      <ul className="stagger-rows space-y-2">{list.map((shift) => shiftRow(shift))}</ul>
                     </section>
                   ))}
                 </div>
@@ -441,7 +441,7 @@ export function VolunteersManager() {
               <CardDescription>Turnos ya pasados: ¿se cumplieron?</CardDescription>
             </CardHeader>
             <CardContent>
-              {recentToConfirm.length ? <ul className="space-y-2">{recentToConfirm.slice(-8).reverse().map((shift) => shiftRow(shift, true))}</ul> : <p className="text-sm text-muted-foreground">Todo confirmado. 🙌</p>}
+              {recentToConfirm.length ? <ul className="stagger-rows space-y-2">{recentToConfirm.slice(-8).reverse().map((shift) => shiftRow(shift, true))}</ul> : <p className="flex items-center gap-2 text-sm text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Todo confirmado.</p>}
             </CardContent>
           </Card>
         </div>
