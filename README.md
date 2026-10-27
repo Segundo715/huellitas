@@ -43,7 +43,10 @@ Crea tu archivo `.env.local` con estas variables:
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_reemplazar
 NEXT_PUBLIC_DEMO_MODE=true
+NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 ```
+
+`NEXT_PUBLIC_SITE_URL` es la dirección pública del sitio: se usa en el sitemap y en la vista previa (foto y texto) que aparece al compartir el perfil de un animal por WhatsApp o redes. En Vercel se toma sola del dominio de producción.
 
 La clave publicable se utiliza con RLS. No pongas claves `sb_secret_*` ni `service_role` en variables `NEXT_PUBLIC_*` ni en el navegador. Para usar Supabase Auth y Postgres, cambia `NEXT_PUBLIC_DEMO_MODE=false` y reinicia el servidor.
 
@@ -57,6 +60,7 @@ La clave publicable se utiliza con RLS. No pongas claves `sb_secret_*` ni `servi
 5. Pon `NEXT_PUBLIC_DEMO_MODE=false` y reinicia `npm run dev`.
 
 ### Seguridad
+- Cabeceras HTTP de seguridad en todas las respuestas (`next.config.ts`): sin iframes externos, `nosniff`, HSTS y política de permisos.
 - La sesión vive en cookies de Supabase y el **middleware** valida el usuario y su rol en cada petición (`lib/auth/roles.ts` define qué rol entra a cada ruta).
 - Las tablas tienen **RLS**: solo `admin` y `operador` pueden leer/escribir animales, notas, inventario, solicitudes de adopción y movimientos financieros, aunque alguien manipule el navegador.
 - El rol se guarda en `app_metadata`, que el usuario no puede modificar.

@@ -5,7 +5,7 @@ import { AuthForm } from '@/components/auth-form';
 import { BrandLogo } from '@/components/brand-logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 
-export const metadata: Metadata = { title: 'Iniciar sesión · Huellitas Admin' };
+export const metadata: Metadata = { title: 'Iniciar sesión' };
 
 const highlights = [
   { icon: PawPrint, title: 'Expedientes completos', text: 'Fotos, historial médico y estado de cada animal.' },

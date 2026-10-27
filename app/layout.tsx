@@ -7,13 +7,17 @@ import { RouteProgress } from '@/components/route-progress';
 import { ThemeProvider, themeInitScript } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { getServerSessionUser } from '@/lib/supabase/server';
+import { getSiteUrl } from '@/lib/site';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-display', display: 'swap', weight: ['600', '700', '800'] });
 
 export const metadata: Metadata = {
-  title: 'Huellitas Admin',
-  description: 'Panel administrativo para refugio y cuidado animal',
+  metadataBase: getSiteUrl(),
+  title: { default: 'Huellitas', template: '%s · Huellitas' },
+  description: 'Refugio de animales rescatados: adopciones, cuidados y gestión del refugio.',
+  applicationName: 'Huellitas',
+  openGraph: { siteName: 'Huellitas', locale: 'es_MX', type: 'website' },
 };
 
 export const viewport: Viewport = {

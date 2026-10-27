@@ -3,11 +3,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { canAccessPath, isAppRole } from '@/lib/auth/roles';
 import { getSupabasePublicConfig, isDemoMode } from '@/lib/supabase/config';
 
-// Páginas abiertas al público (adopción). Todo lo demás exige sesión y rol.
+// Páginas abiertas al público (adopción y archivos para buscadores). Todo lo demás exige sesión y rol.
 const PUBLIC_PREFIXES = ['/adopta'];
+const PUBLIC_FILES = ['/robots.txt', '/sitemap.xml'];
 
 function isPublicPath(pathname: string) {
-  return PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  return PUBLIC_FILES.includes(pathname) || PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 export async function middleware(request: NextRequest) {
