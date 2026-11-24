@@ -2,11 +2,11 @@ import type { AppRole, SessionUser } from '@/lib/auth/roles';
 
 export { getRoleLabel, type AppRole, type SessionUser } from '@/lib/auth/roles';
 
-// Solo para NEXT_PUBLIC_DEMO_MODE=true. En modo real la sesión vive en cookies de Supabase.
-export const demoUsers: Record<string, { password: string; name: string; role: AppRole }> = {
-  'admin@huellitas.org': { password: 'admin123', name: 'Ana Morales', role: 'admin' },
-  'operador@huellitas.org': { password: 'operador123', name: 'Luis Ortega', role: 'operador' },
-  'voluntario@huellitas.org': { password: 'voluntario123', name: 'Paula Ruiz', role: 'voluntario' },
+// Cuentas ficticias para desarrollo local; nunca contienen contraseñas.
+export const demoUsers: Record<string, { name: string; role: AppRole }> = {
+  'admin@huellitas.org': { name: 'Ana Morales', role: 'admin' },
+  'operador@huellitas.org': { name: 'Luis Ortega', role: 'operador' },
+  'voluntario@huellitas.org': { name: 'Paula Ruiz', role: 'voluntario' },
 };
 
 const STORAGE_KEY = 'huellitas-demo-session';

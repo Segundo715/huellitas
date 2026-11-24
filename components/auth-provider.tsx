@@ -51,6 +51,7 @@ export function AuthProvider({ children, initialUser }: { children: React.ReactN
         email: authUser.email,
         name: typeof fullName === 'string' && fullName ? fullName : authUser.email.split('@')[0],
         role,
+        avatarPath: typeof authUser.user_metadata.avatar_path === 'string' ? authUser.user_metadata.avatar_path : null,
       });
       setStatus('authenticated');
     });

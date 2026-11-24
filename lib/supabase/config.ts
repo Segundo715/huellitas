@@ -5,7 +5,7 @@ export function getSupabasePublicConfig() {
   return url && key ? { url, key } : null;
 }
 
-// El modo demo solo se desactiva explícitamente con NEXT_PUBLIC_DEMO_MODE=false.
+// El demo solo puede activarse fuera de producción y mediante opt-in explícito.
 export function isDemoMode() {
-  return process.env.NEXT_PUBLIC_DEMO_MODE !== 'false';
+  return process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 }

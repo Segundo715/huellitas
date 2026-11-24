@@ -192,7 +192,7 @@ function fail(action: string, error: { message: string; code?: string }): never 
 export async function listAdoptions(supabase: SupabaseClient | null): Promise<AdoptionRequest[]> {
   if (!supabase) return readDemoRequests().sort((a, b) => b.created_at.localeCompare(a.created_at));
 
-  const { data, error } = await supabase.from('adoption_requests').select(SELECT_COLUMNS).order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('shelter_adoption_requests').select(SELECT_COLUMNS).order('created_at', { ascending: false });
   if (error) fail('cargar las solicitudes', error);
   return data as AdoptionRequest[];
 }
@@ -205,7 +205,7 @@ export async function createAdoption(supabase: SupabaseClient | null, payload: A
     return request;
   }
 
-  const { data, error } = await supabase.from('adoption_requests').insert(payload).select(SELECT_COLUMNS).single();
+  const { data, error } = await supabase.from('shelter_adoption_requests').insert(payload).select(SELECT_COLUMNS).single();
   if (error) fail('crear la solicitud', error);
   return data as AdoptionRequest;
 }
@@ -220,7 +220,7 @@ export async function updateAdoption(supabase: SupabaseClient | null, id: string
     return updated;
   }
 
-  const { data, error } = await supabase.from('adoption_requests').update(payload).eq('id', id).select(SELECT_COLUMNS).single();
+  const { data, error } = await supabase.from('shelter_adoption_requests').update(payload).eq('id', id).select(SELECT_COLUMNS).single();
   if (error) fail('actualizar la solicitud', error);
   return data as AdoptionRequest;
 }
@@ -231,6 +231,6 @@ export async function deleteAdoption(supabase: SupabaseClient | null, id: string
     return;
   }
 
-  const { error } = await supabase.from('adoption_requests').delete().eq('id', id);
+  const { error } = await supabase.from('shelter_adoption_requests').delete().eq('id', id);
   if (error) fail('eliminar la solicitud', error);
 }

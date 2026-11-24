@@ -24,7 +24,7 @@ language sql
 stable
 set search_path = ''
 as $$
-  select public.current_app_role() in ('admin', 'operador');
+  select public.current_app_role() in ('admin', 'operador', 'moderador');
 $$;
 
 create or replace function public.is_admin()
@@ -36,14 +36,14 @@ as $$
   select public.current_app_role() = 'admin';
 $$;
 
--- Cualquier usuario con rol válido (admin, operador o voluntario).
+-- Cualquier usuario con rol válido en el panel.
 create or replace function public.is_app_user()
 returns boolean
 language sql
 stable
 set search_path = ''
 as $$
-  select public.current_app_role() in ('admin', 'operador', 'voluntario');
+  select public.current_app_role() in ('admin', 'operador', 'voluntario', 'moderador');
 $$;
 
 -- Quien entra a /voluntariado (ver lib/auth/roles.ts).
@@ -56,7 +56,7 @@ as $$
   select public.current_app_role() in ('admin', 'voluntario');
 $$;
 
-create or replace function public.handle_updated_at()
+create or replace function public.shelter_handle_updated_at()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -68,15 +68,16 @@ end;
 $$;
 
 -- ─────────────────────────────────────────────────────────────
--- Perfiles de usuario (módulo Usuarios)
+-- Perfiles del personal (módulo Usuarios). No usa la tabla profiles de la app.
 -- Se crean solos al dar de alta a alguien en Authentication → Users.
 -- El rol "de verdad" vive en app_metadata; aquí se refleja para poder listarlo.
 -- ─────────────────────────────────────────────────────────────
-create table if not exists public.profiles (
+create table if not exists public.staff_profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   full_name text check (full_name is null or char_length(full_name) <= 120),
-  role text check (role is null or role in ('admin', 'operador', 'voluntario')),
+  avatar_path text,
+  role text check (role is null or role in ('admin', 'operador', 'voluntario', 'moderador')),
   team text check (team is null or char_length(team) <= 80),
   location text check (location is null or char_length(location) <= 80),
   status text not null default 'Activo' check (status in ('Activo', 'Invitación pendiente', 'Inactivo')),
@@ -84,55 +85,70 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
-drop trigger if exists profiles_updated_at on public.profiles;
-create trigger profiles_updated_at
-before update on public.profiles
-for each row
-execute function public.handle_updated_at();
+alter table public.staff_profiles add column if not exists avatar_path text;
+alter table public.staff_profiles drop constraint if exists staff_profiles_role_check;
+alter table public.staff_profiles
+  add constraint staff_profiles_role_check
+  check (role is null or role in ('admin', 'operador', 'voluntario', 'moderador')) not valid;
 
-create or replace function public.handle_auth_user_change()
+drop trigger if exists staff_profiles_updated_at on public.staff_profiles;
+create trigger staff_profiles_updated_at
+before update on public.staff_profiles
+for each row
+execute function public.shelter_handle_updated_at();
+
+create or replace function public.shelter_handle_auth_user_change()
 returns trigger
 language plpgsql
 security definer
 set search_path = ''
 as $$
 begin
-  insert into public.profiles as p (id, email, full_name, role)
+  if coalesce(new.raw_app_meta_data ->> 'role', '') not in ('admin', 'operador', 'voluntario', 'moderador') then
+    delete from public.staff_profiles where id = new.id;
+    return new;
+  end if;
+
+  insert into public.staff_profiles as p (id, email, full_name, avatar_path, role)
   values (
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name'),
-    case when new.raw_app_meta_data ->> 'role' in ('admin', 'operador', 'voluntario') then new.raw_app_meta_data ->> 'role' end
+    new.raw_user_meta_data ->> 'avatar_path',
+    new.raw_app_meta_data ->> 'role'
   )
   on conflict (id) do update
     set email = excluded.email,
         role = excluded.role,
-        full_name = coalesce(p.full_name, excluded.full_name);
+        full_name = coalesce(excluded.full_name, p.full_name),
+        avatar_path = excluded.avatar_path;
   return new;
 end;
 $$;
 
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
+drop trigger if exists on_shelter_staff_user_created on auth.users;
+create trigger on_shelter_staff_user_created
 after insert on auth.users
 for each row
-execute function public.handle_auth_user_change();
+execute function public.shelter_handle_auth_user_change();
 
-drop trigger if exists on_auth_user_updated on auth.users;
-create trigger on_auth_user_updated
-after update of email, raw_app_meta_data on auth.users
+drop trigger if exists on_shelter_staff_user_updated on auth.users;
+create trigger on_shelter_staff_user_updated
+after update of email, raw_app_meta_data, raw_user_meta_data on auth.users
 for each row
-execute function public.handle_auth_user_change();
+execute function public.shelter_handle_auth_user_change();
 
 -- Usuarios que ya existían antes de crear la tabla.
-insert into public.profiles (id, email, full_name, role)
+insert into public.staff_profiles (id, email, full_name, avatar_path, role)
 select
   u.id,
   u.email,
   coalesce(u.raw_user_meta_data ->> 'full_name', u.raw_user_meta_data ->> 'name'),
-  case when u.raw_app_meta_data ->> 'role' in ('admin', 'operador', 'voluntario') then u.raw_app_meta_data ->> 'role' end
+  u.raw_user_meta_data ->> 'avatar_path',
+  u.raw_app_meta_data ->> 'role'
 from auth.users u
 where u.email is not null
+  and u.raw_app_meta_data ->> 'role' in ('admin', 'operador', 'voluntario', 'moderador')
 on conflict (id) do nothing;
 
 -- ─────────────────────────────────────────────────────────────
@@ -197,7 +213,7 @@ drop trigger if exists animals_updated_at on public.animals;
 create trigger animals_updated_at
 before update on public.animals
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 -- ─────────────────────────────────────────────────────────────
 -- Historial / notas de cada animal
@@ -237,7 +253,7 @@ drop trigger if exists care_reminders_updated_at on public.care_reminders;
 create trigger care_reminders_updated_at
 before update on public.care_reminders
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 -- ─────────────────────────────────────────────────────────────
 -- Inventario
@@ -268,12 +284,12 @@ drop trigger if exists inventory_items_updated_at on public.inventory_items;
 create trigger inventory_items_updated_at
 before update on public.inventory_items
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 -- ─────────────────────────────────────────────────────────────
 -- Solicitudes de adopción
 -- ─────────────────────────────────────────────────────────────
-create table if not exists public.adoption_requests (
+create table if not exists public.shelter_adoption_requests (
   id uuid primary key default gen_random_uuid(),
   applicant_name text not null check (char_length(applicant_name) between 1 and 120),
   email text not null check (char_length(email) between 3 and 254),
@@ -292,14 +308,14 @@ create table if not exists public.adoption_requests (
   updated_at timestamptz not null default now()
 );
 
-create index if not exists adoption_requests_stage_idx on public.adoption_requests (stage, created_at desc);
-create index if not exists adoption_requests_animal_id_idx on public.adoption_requests (animal_id);
+create index if not exists shelter_adoption_requests_stage_idx on public.shelter_adoption_requests (stage, created_at desc);
+create index if not exists shelter_adoption_requests_animal_id_idx on public.shelter_adoption_requests (animal_id);
 
-drop trigger if exists adoption_requests_updated_at on public.adoption_requests;
-create trigger adoption_requests_updated_at
-before update on public.adoption_requests
+drop trigger if exists shelter_adoption_requests_updated_at on public.shelter_adoption_requests;
+create trigger shelter_adoption_requests_updated_at
+before update on public.shelter_adoption_requests
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 -- ─────────────────────────────────────────────────────────────
 -- Adopciones particulares: personas que buscan hogar para su mascota.
@@ -328,7 +344,7 @@ drop trigger if exists adoption_listings_updated_at on public.adoption_listings;
 create trigger adoption_listings_updated_at
 before update on public.adoption_listings
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 -- ─────────────────────────────────────────────────────────────
 -- Finanzas: donaciones (ingresos) y gastos
@@ -354,7 +370,7 @@ drop trigger if exists transactions_updated_at on public.transactions;
 create trigger transactions_updated_at
 before update on public.transactions
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 -- ─────────────────────────────────────────────────────────────
 -- Agenda: citas y tareas del equipo
@@ -381,7 +397,7 @@ drop trigger if exists calendar_entries_updated_at on public.calendar_entries;
 create trigger calendar_entries_updated_at
 before update on public.calendar_entries
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 -- ─────────────────────────────────────────────────────────────
 -- Eventos y campañas (ferias, jornadas, colectas)
@@ -409,7 +425,7 @@ drop trigger if exists events_updated_at on public.events;
 create trigger events_updated_at
 before update on public.events
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 -- ─────────────────────────────────────────────────────────────
 -- Voluntariado: equipos y turnos
@@ -428,7 +444,7 @@ drop trigger if exists volunteer_teams_updated_at on public.volunteer_teams;
 create trigger volunteer_teams_updated_at
 before update on public.volunteer_teams
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 create table if not exists public.volunteer_shifts (
   id uuid primary key default gen_random_uuid(),
@@ -453,7 +469,7 @@ drop trigger if exists volunteer_shifts_updated_at on public.volunteer_shifts;
 create trigger volunteer_shifts_updated_at
 before update on public.volunteer_shifts
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 -- ─────────────────────────────────────────────────────────────
 -- Reportes ciudadanos (maltrato, abandono, animal herido…)
@@ -483,19 +499,19 @@ drop trigger if exists citizen_reports_updated_at on public.citizen_reports;
 create trigger citizen_reports_updated_at
 before update on public.citizen_reports
 for each row
-execute function public.handle_updated_at();
+execute function public.shelter_handle_updated_at();
 
 -- ─────────────────────────────────────────────────────────────
 -- Row Level Security
 -- Las funciones van envueltas en (select …) para que Postgres las evalúe
 -- una vez por consulta y no una vez por fila.
 -- ─────────────────────────────────────────────────────────────
-alter table public.profiles enable row level security;
+alter table public.staff_profiles enable row level security;
 alter table public.animals enable row level security;
 alter table public.animal_notes enable row level security;
 alter table public.care_reminders enable row level security;
 alter table public.inventory_items enable row level security;
-alter table public.adoption_requests enable row level security;
+alter table public.shelter_adoption_requests enable row level security;
 alter table public.adoption_listings enable row level security;
 alter table public.transactions enable row level security;
 alter table public.calendar_entries enable row level security;
@@ -524,10 +540,10 @@ drop policy if exists "Allow staff to delete inventory" on public.inventory_item
 drop policy if exists "Staff manage animals" on public.animals;
 drop policy if exists "Staff manage animal notes" on public.animal_notes;
 drop policy if exists "Staff manage inventory" on public.inventory_items;
-drop policy if exists "Staff manage adoption requests" on public.adoption_requests;
+drop policy if exists "Staff manage shelter adoption requests" on public.shelter_adoption_requests;
 drop policy if exists "Staff manage transactions" on public.transactions;
-drop policy if exists "Users read own profile" on public.profiles;
-drop policy if exists "Admin manage profiles" on public.profiles;
+drop policy if exists "Users read own staff profile" on public.staff_profiles;
+drop policy if exists "Admin manage staff profiles" on public.staff_profiles;
 drop policy if exists "Team reads care reminders" on public.care_reminders;
 drop policy if exists "Team creates care reminders" on public.care_reminders;
 drop policy if exists "Team updates care reminders" on public.care_reminders;
@@ -560,7 +576,7 @@ for all to authenticated using ((select public.is_staff())) with check ((select 
 create policy "Staff manage inventory" on public.inventory_items
 for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
-create policy "Staff manage adoption requests" on public.adoption_requests
+create policy "Staff manage shelter adoption requests" on public.shelter_adoption_requests
 for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
 create policy "Staff manage adoption listings" on public.adoption_listings
@@ -569,11 +585,11 @@ for all to authenticated using ((select public.is_staff())) with check ((select 
 create policy "Staff manage transactions" on public.transactions
 for all to authenticated using ((select public.is_staff())) with check ((select public.is_staff()));
 
--- Perfiles: cada quien ve el suyo; la administración ve y gestiona todos.
-create policy "Users read own profile" on public.profiles
+-- Perfiles del personal: cada quien ve el suyo; la administración ve y gestiona todos.
+create policy "Users read own staff profile" on public.staff_profiles
 for select to authenticated using (id = (select auth.uid()) or (select public.is_admin()));
 
-create policy "Admin manage profiles" on public.profiles
+create policy "Admin manage staff profiles" on public.staff_profiles
 for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
 
 -- Seguimiento: todo el equipo ve, crea y marca avances; borrar, staff o quien lo creó.
@@ -660,12 +676,12 @@ for delete to authenticated using ((select public.is_staff()));
 -- ─────────────────────────────────────────────────────────────
 grant usage on schema public to authenticated;
 grant select, insert, update, delete on
-  public.profiles,
+  public.staff_profiles,
   public.animals,
   public.animal_notes,
   public.care_reminders,
   public.inventory_items,
-  public.adoption_requests,
+  public.shelter_adoption_requests,
   public.adoption_listings,
   public.transactions,
   public.calendar_entries,
@@ -675,7 +691,7 @@ grant select, insert, update, delete on
   public.citizen_reports
 to authenticated;
 
-revoke all on function public.handle_auth_user_change() from public, anon, authenticated;
+revoke all on function public.shelter_handle_auth_user_change() from public, anon, authenticated;
 
 -- ─────────────────────────────────────────────────────────────
 -- Asignar rol a un usuario (créalo antes en Authentication → Users).
@@ -695,8 +711,8 @@ begin
     raise exception 'Solo la administración puede cambiar roles.' using errcode = '42501';
   end if;
 
-  if new_role not in ('admin', 'operador', 'voluntario') then
-    raise exception 'Rol no válido: %. Usa admin, operador o voluntario.', new_role using errcode = '22023';
+  if new_role not in ('admin', 'operador', 'voluntario', 'moderador') then
+    raise exception 'Rol no válido: %. Usa admin, operador, voluntario o moderador.', new_role using errcode = '22023';
   end if;
 
   update auth.users
@@ -711,6 +727,41 @@ $$;
 
 revoke all on function public.set_user_role(text, text) from public, anon;
 grant execute on function public.set_user_role(text, text) to authenticated;
+
+-- Fotos privadas del personal: cada cuenta solo puede gestionar su propia carpeta.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('staff-avatars', 'staff-avatars', false, 2097152, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update
+set public = false,
+    file_size_limit = 2097152,
+    allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp'];
+
+drop policy if exists "Staff can read own avatar" on storage.objects;
+create policy "Staff can read own avatar" on storage.objects
+for select to authenticated
+using (
+  bucket_id = 'staff-avatars'
+  and (select public.is_app_user())
+  and (storage.foldername(name))[1] = (select auth.uid())::text
+);
+
+drop policy if exists "Staff can upload own avatar" on storage.objects;
+create policy "Staff can upload own avatar" on storage.objects
+for insert to authenticated
+with check (
+  bucket_id = 'staff-avatars'
+  and (select public.is_app_user())
+  and (storage.foldername(name))[1] = (select auth.uid())::text
+);
+
+drop policy if exists "Staff can delete own avatar" on storage.objects;
+create policy "Staff can delete own avatar" on storage.objects
+for delete to authenticated
+using (
+  bucket_id = 'staff-avatars'
+  and (select public.is_app_user())
+  and (storage.foldername(name))[1] = (select auth.uid())::text
+);
 
 -- ─────────────────────────────────────────────────────────────
 -- Página pública de adopción (/adopta), sin iniciar sesión.
@@ -813,19 +864,19 @@ begin
 
   -- Límites contra spam.
   if exists (
-    select 1 from public.adoption_requests r
+    select 1 from public.shelter_adoption_requests r
     where lower(r.email) = v_email and r.animal_id = p_animal_id and r.stage not in ('Aprobada', 'Rechazada')
   ) then
     raise exception 'Ya recibimos tu solicitud para %. Te contactaremos pronto.', v_animal.name using errcode = '23505';
   end if;
-  if (select count(*) from public.adoption_requests r where lower(r.email) = v_email and r.created_at > now() - interval '1 day') >= 3 then
+  if (select count(*) from public.shelter_adoption_requests r where lower(r.email) = v_email and r.created_at > now() - interval '1 day') >= 3 then
     raise exception 'Ya enviaste varias solicitudes hoy. Espera nuestra llamada.' using errcode = '54000';
   end if;
-  if (select count(*) from public.adoption_requests r where r.source = 'Web' and r.created_at > now() - interval '1 hour') >= 40 then
+  if (select count(*) from public.shelter_adoption_requests r where r.source = 'Web' and r.created_at > now() - interval '1 hour') >= 40 then
     raise exception 'Estamos recibiendo muchas solicitudes. Intenta en un rato.' using errcode = '54000';
   end if;
 
-  insert into public.adoption_requests (applicant_name, email, phone, city, animal_id, animal_name, stage, priority, source, housing, notes)
+  insert into public.shelter_adoption_requests (applicant_name, email, phone, city, animal_id, animal_name, stage, priority, source, housing, notes)
   values (
     v_name,
     v_email,
@@ -869,7 +920,7 @@ select * from (values
 ) as seed(name, category, stock, min_stock, expiry_date, unit, status)
 where not exists (select 1 from public.inventory_items);
 
-insert into public.adoption_requests (applicant_name, email, city, animal_id, animal_name, stage, priority, source, housing, assignee)
+insert into public.shelter_adoption_requests (applicant_name, email, city, animal_id, animal_name, stage, priority, source, housing, assignee)
 select seed.applicant_name, seed.email, seed.city, a.id, seed.animal_name, seed.stage, seed.priority, seed.source, seed.housing, seed.assignee
 from (values
   ('Valeria R.', 'valeria.r@example.com', 'Roma Norte', 'Luna', 'Preselección', 'Alta', 'Web', 'Casa con patio', 'Ana'),
@@ -877,7 +928,7 @@ from (values
   ('Javier S.', 'javier.s@example.com', 'Polanco', 'Milo', 'Nueva', 'Baja', 'Facebook', 'Departamento', 'Ana')
 ) as seed(applicant_name, email, city, animal_name, stage, priority, source, housing, assignee)
 left join lateral (select id from public.animals where name = seed.animal_name order by created_at limit 1) a on true
-where not exists (select 1 from public.adoption_requests);
+where not exists (select 1 from public.shelter_adoption_requests);
 
 insert into public.transactions (kind, concept, category, amount, date, method, contact)
 select * from (values

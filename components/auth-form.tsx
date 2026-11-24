@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { AlertCircle, ArrowRight, Check, CheckCircle2, Eye, EyeOff, Hand, Loader2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff, Hand, Loader2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { z } from 'zod';
 import { clearStoredSession, demoUsers, setStoredSession } from '@/lib/auth-demo';
 import { isAppRole } from '@/lib/auth/roles';
@@ -26,7 +26,8 @@ function safeNext(next: string | undefined) {
 }
 
 const errorMessages: Record<string, string> = {
-  'sin-rol': 'Tu cuenta no tiene un rol asignado. Pide a administración que te asigne admin, operador o voluntario.',
+  'sin-rol': 'Tu cuenta no tiene un rol asignado. Pide a administración que te asigne un rol.',
+  config: 'No está configurada la conexión de Supabase. El acceso al panel está bloqueado hasta corregirla.',
 };
 
 // Traduce los errores de Supabase Auth a mensajes claros.
@@ -65,7 +66,7 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
   };
   const [error, setError] = useState(initialError ? (errorMessages[initialError] ?? '') : '');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [form, setForm] = useState({ email: demoMode ? 'admin@huellitas.org' : '', password: demoMode ? 'admin123' : '' });
+  const [form, setForm] = useState({ email: '', password: '' });
 
   const updateField = (field: Field, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -73,15 +74,21 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
     setError('');
   };
 
-  const selectDemoUser = (email: string, password: string) => {
-    setForm({ email, password });
-    setFieldErrors({});
-    setError('');
+  const enterDemoUser = async (email: string, user: (typeof demoUsers)[string]) => {
+    setLoading(true);
+    clearStoredSession();
+    setStoredSession({ id: email, email, name: user.name, role: user.role });
+    await enter(safeNext(next));
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
+
+    if (demoMode) {
+      setError('Elige una cuenta local de demostración.');
+      return;
+    }
 
     const parsed = loginSchema.safeParse(form);
     if (!parsed.success) {
@@ -101,18 +108,6 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
     setLoading(true);
 
     try {
-      if (demoMode) {
-        const user = demoUsers[email];
-        if (!user || user.password !== password) {
-          throw new Error('Correo o contraseña demo incorrectos.');
-        }
-
-        clearStoredSession();
-        setStoredSession({ id: email, email, name: user.name, role: user.role });
-        await enter(safeNext(next));
-        return;
-      }
-
       const supabase = createClient();
       if (!supabase) {
         throw new Error('Falta configurar NEXT_PUBLIC_SUPABASE_URL y la clave publicable en .env.local.');
@@ -158,20 +153,15 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
       {demoMode ? (
         <div role="group" aria-label="Cuentas de demostración" className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
           {Object.entries(demoUsers).map(([email, user]) => {
-            const active = form.email === email && form.password === user.password;
             return (
               <button
                 key={email}
                 type="button"
-                aria-pressed={active}
+                aria-label={`Entrar en modo local como ${user.role}`}
                 disabled={loading}
-                onClick={() => selectDemoUser(email, user.password)}
-                className={cn(
-                  'group relative rounded-xl border bg-card px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60',
-                  active && 'border-primary/60 bg-primary/5 ring-1 ring-primary/30',
-                )}
+                onClick={() => void enterDemoUser(email, user)}
+                className="group relative rounded-xl border bg-card px-3 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-accent hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60"
               >
-                {active ? <Check aria-hidden="true" className="absolute right-2 top-2 h-3.5 w-3.5 text-primary" /> : null}
                 <span className="block font-semibold capitalize text-foreground">{user.role}</span>
                 <span className="block truncate text-xs text-muted-foreground">{email}</span>
               </button>
@@ -180,7 +170,7 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
         </div>
       ) : null}
 
-      <form ref={formRef} onSubmit={handleSubmit} onAnimationEnd={(e) => e.currentTarget.classList.remove('shake')} className="mt-8" noValidate aria-busy={loading}>
+      {!demoMode ? <form ref={formRef} onSubmit={handleSubmit} onAnimationEnd={(e) => e.currentTarget.classList.remove('shake')} className="mt-8" noValidate aria-busy={loading}>
         <fieldset disabled={loading} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email">Correo</Label>
@@ -276,7 +266,7 @@ export function AuthForm({ next, initialError }: { next?: string; initialError?:
             )}
           </Button>
         </fieldset>
-      </form>
+      </form> : null}
     </div>
   );
 }

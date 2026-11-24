@@ -47,5 +47,6 @@ export async function getServerSessionUser(): Promise<SessionUser | null> {
     email: user.email,
     name: typeof fullName === 'string' && fullName ? fullName : user.email.split('@')[0],
     role: user.app_metadata.role,
+    avatarPath: typeof user.user_metadata.avatar_path === 'string' ? user.user_metadata.avatar_path : null,
   };
 }

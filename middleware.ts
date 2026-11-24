@@ -15,9 +15,27 @@ export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabaseConfig = getSupabasePublicConfig();
+  const { pathname, search } = request.nextUrl;
 
-  if (isDemoMode() || !supabaseConfig) {
+  if (isDemoMode()) {
     return response;
+  }
+
+  if (!supabaseConfig) {
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json({ error: 'Supabase authentication is not configured.' }, { status: 503 });
+    }
+
+    if (pathname === '/login' || pathname.startsWith('/auth') || isPublicPath(pathname)) {
+      return response;
+    }
+
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.search = '';
+    url.searchParams.set('error', 'config');
+    url.searchParams.set('next', `${pathname}${search}`);
+    return NextResponse.redirect(url);
   }
 
   const supabase = createServerClient(supabaseConfig.url, supabaseConfig.key, {
@@ -39,7 +57,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname, search } = request.nextUrl;
   const role = user?.app_metadata.role;
   const hasRole = isAppRole(role);
 

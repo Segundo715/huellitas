@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { AlertTriangle, Bell, Database, FlaskConical, Keyboard, LogOut, Menu, Monitor, Moon, PawPrint, Search, Sun, X } from 'lucide-react';
+import { AlertTriangle, Bell, Database, FlaskConical, Keyboard, LogOut, Menu, Monitor, Moon, PawPrint, Search, Sun, UserRound, X } from 'lucide-react';
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth-provider';
@@ -10,6 +10,7 @@ import { BrandLogo } from '@/components/brand-logo';
 import { CommandPalette } from '@/components/command-palette';
 import { useTheme } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { UserAvatar } from '@/components/user-avatar';
 import { ModKey } from '@/components/mod-key';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -324,8 +325,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-full p-0.5 pr-2 transition hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 text-xs font-bold text-white shadow-sm">
-                      {initialsOf(user.name)}
+                    <span className="relative">
+                      <UserAvatar path={user.avatarPath} initials={initialsOf(user.name)} className="h-8 w-8 shadow-sm" />
                       <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-emerald-400" />
                     </span>
                     <span className="hidden text-left text-sm leading-tight md:block">
@@ -339,6 +340,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     <p className="font-semibold">{user.name}</p>
                     <p className="truncate text-xs font-normal text-muted-foreground">{user.email}</p>
                   </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/perfil"><UserRound /> Mi perfil</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <p className="px-2.5 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Apariencia</p>
                   <div className="grid grid-cols-3 gap-1 px-1 pb-1">
