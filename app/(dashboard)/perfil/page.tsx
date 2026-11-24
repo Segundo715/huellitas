@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'Mi perfil' };
 
 export default function PerfilPage() {
   return (
-    <RoleGuard allowedRoles={['admin', 'operador', 'moderador', 'voluntario']}>
+    <RoleGuard allowedRoles={['admin', 'operador', 'voluntario']}>
       <ProfileSettings />
     </RoleGuard>
   );

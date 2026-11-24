@@ -157,7 +157,7 @@ export function ProfileSettings() {
             <div>
               <h2 className="font-semibold">Administrar equipo</h2>
               <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-                Solo administración puede crear cuentas y asignar roles de admin, operador, moderador o voluntario.
+                Solo administración puede crear cuentas y asignar roles de admin, operador o voluntario.
               </p>
             </div>
           </div>

@@ -71,10 +71,10 @@ export async function setUserRole(supabase: SupabaseClient | null, profile: Prof
     return updated;
   }
 
-  const { error } = await supabase.rpc('set_user_role', { target_email: profile.email, new_role: role });
+  const { error } = await supabase.rpc('shelter_set_user_role', { new_role: role, target_email: profile.email });
   if (error) {
     if (error.code === '42501') throw new Error('Solo la administración puede cambiar roles.');
-    if (error.code === 'PGRST202') throw new Error('Falta la función set_user_role. Ejecuta supabase-schema.sql en el SQL Editor.');
+    if (error.code === 'PGRST202') throw new Error('Falta la función shelter_set_user_role. Ejecuta supabase-staff-schema.sql en el SQL Editor.');
     throw new Error(`No se pudo cambiar el rol: ${error.message}`);
   }
   // El trigger de auth.users ya sincronizó staff_profiles.role.
@@ -87,8 +87,6 @@ export function roleBadge(role: AppRole | null) {
       return { label: 'Administración', className: 'border-violet-200 bg-violet-50 text-violet-700' };
     case 'operador':
       return { label: 'Operador', className: 'border-sky-200 bg-sky-50 text-sky-700' };
-    case 'moderador':
-      return { label: 'Moderador', className: 'border-rose-200 bg-rose-50 text-rose-700' };
     case 'voluntario':
       return { label: 'Voluntario', className: 'border-emerald-200 bg-emerald-50 text-emerald-700' };
     default:

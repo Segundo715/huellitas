@@ -28,7 +28,8 @@ export function createTableStore<T extends Row, P extends object>({
       throw new Error(`No tienes permiso para ${action}.`);
     }
     if (error.code === '42P01' || error.code === 'PGRST205' || /does not exist|could not find the table/i.test(error.message)) {
-      throw new Error(`Falta la tabla ${table} en Supabase. Ejecuta supabase-schema.sql en el SQL Editor.`);
+      const setupScript = table === 'staff_profiles' ? 'supabase-staff-schema.sql' : 'supabase-schema.sql';
+      throw new Error(`Falta la tabla ${table} en Supabase. Ejecuta ${setupScript} en el SQL Editor.`);
     }
     if (/fetch/i.test(error.message)) {
       throw new Error('No hay conexión con el servidor. Revisa tu internet.');

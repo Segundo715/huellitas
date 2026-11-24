@@ -16,10 +16,10 @@ Coordina con el equipo Android la ejecucion en este orden:
 El archivo `moderacion.sql` y las funciones `mod_*` deben estar instalados antes de activar la pantalla de moderacion. Asigna el rol mediante SQL despues de crear al usuario en Supabase Auth:
 
 ```sql
-select public.set_user_role('moderador@ejemplo.com', 'moderador');
+select public.shelter_set_user_role('admin', 'admin@ejemplo.com');
 ```
 
-El usuario debe cerrar sesion e iniciarla de nuevo para recibir el rol en su token. `admin`, `operador` y `moderador` pueden moderar; `voluntario` no.
+El usuario debe cerrar sesion e iniciarla de nuevo para recibir el rol en su token. Solo `admin` y `operador` pueden moderar; `voluntario` no.
 
 ## Cliente y listado de reportes
 

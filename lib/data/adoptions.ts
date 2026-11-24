@@ -184,7 +184,7 @@ function fail(action: string, error: { message: string; code?: string }): never 
     throw new Error(`No tienes permiso para ${action}.`);
   }
   if (error.code === '42P01' || /does not exist/i.test(error.message)) {
-    throw new Error('La tabla no existe en Supabase. Ejecuta supabase-schema.sql en el SQL Editor.');
+    throw new Error('Falta shelter_adoption_requests en Supabase. Ejecuta supabase-shelter-adoptions.sql en el SQL Editor.');
   }
   throw new Error(`No se pudo ${action}: ${error.message}`);
 }

@@ -1,4 +1,4 @@
-export type AppRole = 'admin' | 'operador' | 'voluntario' | 'moderador';
+export type AppRole = 'admin' | 'operador' | 'voluntario';
 
 export type SessionUser = {
   id: string;
@@ -8,11 +8,11 @@ export type SessionUser = {
   avatarPath?: string | null;
 };
 
-export const ALL_ROLES: AppRole[] = ['admin', 'operador', 'voluntario', 'moderador'];
-export const STAFF_ROLES: AppRole[] = ['admin', 'operador', 'moderador'];
+export const ALL_ROLES: AppRole[] = ['admin', 'operador', 'voluntario'];
+export const STAFF_ROLES: AppRole[] = ['admin', 'operador'];
 
 export function isAppRole(role: unknown): role is AppRole {
-  return role === 'admin' || role === 'operador' || role === 'voluntario' || role === 'moderador';
+  return role === 'admin' || role === 'operador' || role === 'voluntario';
 }
 
 export function getRoleLabel(role: AppRole) {
@@ -23,8 +23,6 @@ export function getRoleLabel(role: AppRole) {
       return 'Operador';
     case 'voluntario':
       return 'Voluntario';
-    case 'moderador':
-      return 'Moderador';
     default:
       return 'Usuario';
   }

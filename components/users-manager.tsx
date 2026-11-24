@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Info, KeyRound, Loader2, MapPin, PencilLine, RefreshCw, Search, ShieldAlert, ShieldCheck, UserCog, UserX, Users } from 'lucide-react';
+import { Info, KeyRound, Loader2, MapPin, PencilLine, RefreshCw, Search, ShieldCheck, UserCog, UserX, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/components/auth-provider';
 import { FilterChip, PageHeader, StatCard } from '@/components/page-header';
@@ -25,7 +25,6 @@ import { CreateStaffDialog } from '@/components/create-staff-dialog';
 const ROLE_HELP: Record<AppRole, string> = {
   admin: 'Acceso total, incluidos usuarios, finanzas y voluntariado.',
   operador: 'Gestiona animales, inventario, adopciones y finanzas.',
-  moderador: 'Revisa reportes y contenido denunciado sin acceder a conversaciones no reportadas.',
   voluntario: 'Agenda, seguimiento, eventos, reportes y sus turnos.',
 };
 
@@ -153,7 +152,7 @@ export function UsersManager() {
 
   const counts = useMemo(() => {
     const by = (role: AppRole) => profiles.filter((p) => p.role === role).length;
-    return { admin: by('admin'), operador: by('operador'), voluntario: by('voluntario'), moderador: by('moderador'), none: profiles.filter((p) => !p.role).length };
+    return { admin: by('admin'), operador: by('operador'), voluntario: by('voluntario'), none: profiles.filter((p) => !p.role).length };
   }, [profiles]);
 
   const visible = useMemo(() => {
@@ -182,10 +181,9 @@ export function UsersManager() {
         }
       />
 
-      <section className="stagger grid grid-cols-2 gap-3 lg:grid-cols-5 lg:gap-4">
+      <section className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <StatCard label="Administración" value={loading ? '—' : counts.admin} icon={ShieldCheck} tone="violet" />
         <StatCard label="Operadores" value={loading ? '—' : counts.operador} icon={UserCog} tone="sky" />
-        <StatCard label="Moderadores" value={loading ? '—' : counts.moderador} icon={ShieldAlert} tone="rose" />
         <StatCard label="Voluntarios" value={loading ? '—' : counts.voluntario} icon={Users} tone="emerald" />
         <StatCard label="Sin rol" value={loading ? '—' : counts.none} icon={UserX} tone={counts.none ? 'amber' : 'slate'} hint={counts.none ? 'No pueden entrar todavía' : 'Todos asignados'} />
       </section>
@@ -197,7 +195,7 @@ export function UsersManager() {
           <p className="mt-0.5">
             {isDemoMode()
               ? 'En modo demo los usuarios son de prueba. En modo real se crean en Supabase.'
-              : 'Usa «Crear cuenta» para dar de alta a un operador, voluntario, moderador o administrador con correo y contraseña inicial. La persona puede cambiar su foto y nombre en Mi perfil.'}
+              : 'Usa «Crear cuenta» para dar de alta a un operador, voluntario o administrador con correo y contraseña inicial. La persona puede cambiar su foto y nombre en Mi perfil.'}
           </p>
         </div>
       </div>

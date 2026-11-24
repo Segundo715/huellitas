@@ -58,12 +58,16 @@ La clave publicable se utiliza con RLS. No pongas claves `sb_secret_*` ni `servi
 2. Abre **SQL Editor**, pega `supabase-schema.sql` completo y ejecútalo (es re-ejecutable).
    - Opcional: ejecuta también `supabase-animales.sql` para cargar 19 animales de ejemplo con fotos reales (WebP en `public/fotos/animales`, créditos en `CREDITOS.md`).
 3. En **Authentication → Users** crea tus usuarios (Add user → con contraseña, marcando *Auto Confirm*).
-4. Asigna el rol a cada usuario en el SQL Editor: `select public.set_user_role('correo@ejemplo.com', 'admin');` (roles: `admin`, `operador`, `moderador`, `voluntario`). El usuario debe cerrar sesión y volver a entrar.
+4. Asigna el rol a cada usuario en el SQL Editor: `select public.shelter_set_user_role('admin', 'correo@ejemplo.com');` (roles: `admin`, `operador`, `voluntario`). El usuario debe cerrar sesión y volver a entrar.
 5. Mantén `NEXT_PUBLIC_DEMO_MODE=false` y reinicia `npm run dev`.
 
 ### Compartir el proyecto con la app Android
 
-Este panel usa `staff_profiles` y `shelter_adoption_requests` para no chocar con las tablas `profiles` y `adoption_requests` de la app. El trigger del panel también tiene un nombre propio y solo crea perfiles para cuentas que tengan un rol staff en `app_metadata`; las cuentas normales de Android no se agregan al panel.
+Este panel usa `staff_profiles` y `shelter_adoption_requests` para no chocar con las tablas `profiles` y `adoption_requests` de la app. El trigger del panel también tiene un nombre propio y solo crea perfiles para cuentas con rol `admin`, `operador` o `voluntario` en `app_metadata`; las cuentas normales de Android no se agregan al panel.
+
+Para crear solo los perfiles y roles de staff sin instalar las demás tablas del refugio, ejecuta [supabase-staff-schema.sql](supabase-staff-schema.sql) en el SQL Editor.
+
+Para crear solo la tabla de solicitudes internas del refugio, ejecuta [supabase-shelter-adoptions.sql](supabase-shelter-adoptions.sql). No modifica `adoption_requests` de Android.
 
 Antes de ejecutar el esquema en el proyecto compartido, coordina el orden de scripts con el equipo Android y revisa cualquier tabla compartida adicional. No ejecutes una copia anterior del esquema que use los nombres `profiles` o `adoption_requests`.
 

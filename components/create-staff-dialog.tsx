@@ -79,12 +79,15 @@ export function CreateStaffDialog({ onCreated }: { onCreated: () => void }) {
       if (!data.user) throw new Error('Supabase no devolvió la cuenta creada.');
       if (data.user.identities?.length === 0) throw new Error('Ya existe una cuenta con ese correo.');
 
-      const { error: roleError } = await adminClient.rpc('set_user_role', {
-        target_email: email.trim().toLowerCase(),
+      const { error: roleError } = await adminClient.rpc('shelter_set_user_role', {
         new_role: role,
+        target_email: email.trim().toLowerCase(),
       });
 
       if (roleError) {
+        if (roleError.code === 'PGRST202') {
+          throw new Error('La cuenta ya se creó, pero falta la función de roles en Supabase. Ejecuta supabase-staff-schema.sql y asigna el rol a esta cuenta; no intentes crearla otra vez.');
+        }
         throw new Error(`La cuenta se creó, pero no se pudo asignar el rol: ${roleError.message}`);
       }
 

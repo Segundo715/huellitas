@@ -24,7 +24,7 @@ language sql
 stable
 set search_path = ''
 as $$
-  select public.current_app_role() in ('admin', 'operador', 'moderador');
+  select public.current_app_role() in ('admin', 'operador');
 $$;
 
 create or replace function public.is_admin()
@@ -43,7 +43,7 @@ language sql
 stable
 set search_path = ''
 as $$
-  select public.current_app_role() in ('admin', 'operador', 'voluntario', 'moderador');
+  select public.current_app_role() in ('admin', 'operador', 'voluntario');
 $$;
 
 -- Quien entra a /voluntariado (ver lib/auth/roles.ts).
@@ -77,7 +77,7 @@ create table if not exists public.staff_profiles (
   email text not null,
   full_name text check (full_name is null or char_length(full_name) <= 120),
   avatar_path text,
-  role text check (role is null or role in ('admin', 'operador', 'voluntario', 'moderador')),
+  role text check (role is null or role in ('admin', 'operador', 'voluntario')),
   team text check (team is null or char_length(team) <= 80),
   location text check (location is null or char_length(location) <= 80),
   status text not null default 'Activo' check (status in ('Activo', 'Invitación pendiente', 'Inactivo')),
@@ -89,7 +89,7 @@ alter table public.staff_profiles add column if not exists avatar_path text;
 alter table public.staff_profiles drop constraint if exists staff_profiles_role_check;
 alter table public.staff_profiles
   add constraint staff_profiles_role_check
-  check (role is null or role in ('admin', 'operador', 'voluntario', 'moderador')) not valid;
+  check (role is null or role in ('admin', 'operador', 'voluntario')) not valid;
 
 drop trigger if exists staff_profiles_updated_at on public.staff_profiles;
 create trigger staff_profiles_updated_at
@@ -104,7 +104,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if coalesce(new.raw_app_meta_data ->> 'role', '') not in ('admin', 'operador', 'voluntario', 'moderador') then
+  if coalesce(new.raw_app_meta_data ->> 'role', '') not in ('admin', 'operador', 'voluntario') then
     delete from public.staff_profiles where id = new.id;
     return new;
   end if;
@@ -148,7 +148,7 @@ select
   u.raw_app_meta_data ->> 'role'
 from auth.users u
 where u.email is not null
-  and u.raw_app_meta_data ->> 'role' in ('admin', 'operador', 'voluntario', 'moderador')
+  and u.raw_app_meta_data ->> 'role' in ('admin', 'operador', 'voluntario')
 on conflict (id) do nothing;
 
 -- ─────────────────────────────────────────────────────────────
@@ -695,11 +695,13 @@ revoke all on function public.shelter_handle_auth_user_change() from public, ano
 
 -- ─────────────────────────────────────────────────────────────
 -- Asignar rol a un usuario (créalo antes en Authentication → Users).
--- Desde el SQL Editor:   select public.set_user_role('tu-correo@ejemplo.com', 'admin');
+-- Desde el SQL Editor:   select public.shelter_set_user_role('admin', 'tu-correo@ejemplo.com');
 -- También la puede llamar un admin desde la app. El usuario debe cerrar sesión
 -- y volver a entrar para que el rol nuevo aparezca en su token.
 -- ─────────────────────────────────────────────────────────────
-create or replace function public.set_user_role(target_email text, new_role text)
+drop function if exists public.shelter_set_user_role(text, text);
+
+create function public.shelter_set_user_role(new_role text, target_email text)
 returns void
 language plpgsql
 security definer
@@ -711,8 +713,8 @@ begin
     raise exception 'Solo la administración puede cambiar roles.' using errcode = '42501';
   end if;
 
-  if new_role not in ('admin', 'operador', 'voluntario', 'moderador') then
-    raise exception 'Rol no válido: %. Usa admin, operador, voluntario o moderador.', new_role using errcode = '22023';
+  if new_role not in ('admin', 'operador', 'voluntario') then
+    raise exception 'Rol no válido: %. Usa admin, operador o voluntario.', new_role using errcode = '22023';
   end if;
 
   update auth.users
@@ -725,8 +727,10 @@ begin
 end;
 $$;
 
-revoke all on function public.set_user_role(text, text) from public, anon;
-grant execute on function public.set_user_role(text, text) to authenticated;
+revoke all on function public.shelter_set_user_role(text, text) from public, anon;
+grant execute on function public.shelter_set_user_role(text, text) to authenticated;
+
+notify pgrst, 'reload schema';
 
 -- Fotos privadas del personal: cada cuenta solo puede gestionar su propia carpeta.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
